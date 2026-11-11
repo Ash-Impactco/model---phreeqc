@@ -8,9 +8,68 @@ model forecasts on stand-in data, in t CO2e per hectare. They are not creditable
 |---|---|---|---|---|---|
 | 0 | Model as supplied (`data/inputs.json`) | 0.0960 | 0.0027 | 0.0081 | −0.1635 |
 | 1 | Inputs read from `data/lab`; grain-size bins interpolated from table 03 | 0.1037 | 0.0029 | 0.0088 | −0.1630 |
+| 2.1 | Andosol acidity added as an option (base case unchanged) | 0.1037 | 0.0029 | 0.0088 | −0.1630 |
+| | *S1 with the Andosol option switched on (scenario S9)* | *0.1055* | *0.0029* | *0.0095* | *−0.1623* |
 
 The Step 0 numbers stay reproducible with `python scripts/run_batch.py --source json`, and a test
 checks them on every run (`tests/reference/step0_results.csv`).
+
+## Step 2.1: Andosol acidity (exchangeable Al plus pH-dependent charge)
+
+**What changed**
+
+A third acidity option, `acidity_mode = "andosol"`, next to the two existing pools (which are
+unchanged and still the default):
+
+- **Permanent-charge sites (X)** hold Ca, Mg, K, Na and **exchangeable Al** (AlX3). The Al in the
+  soil water is held by an Al hydroxide phase, either amorphous Al(OH)3 (log K 10.8 at 25 °C, as in
+  phreeqc.dat and wateq4f.dat; the default) or gibbsite (llnl.dat). When the pH rises, the
+  exchangeable Al comes off and precipitates, using up three OH⁻ per Al.
+- **Variable-charge sites (Xv)**, a second exchanger with one proton-binding constant: protonated
+  and uncharged at low pH, taking up cations as the pH rises (allophane, imogolite, organic matter).
+- **Calibration, from the soil report only:** charge at the soil pH = effective CEC (bases plus
+  KCl acidity); charge at pH 7 = CEC at pH 7; exchangeable Al = KCl acidity. The exchange constant
+  of AlX3 is fitted so the exchangeable Al is in equilibrium with the Al phase at the soil pH.
+- **Still assumed:** the KCl acidity (1.0 cmol(+)/kg, not measured at Sanguinho), the half-point pH
+  of the variable charge (midway between the soil pH and 7), and the choice of Al phase. All three
+  are rows in `14_model_settings.csv` and controls in the app.
+- A SURFACE block (surface complexation) was not used: the second exchanger does the same job,
+  keeps the charge balance simple and adds no run time (16 s for 10 years).
+- llnl.dat contains the Al13 polymer, which would reach molar concentrations at amorphous Al(OH)3
+  saturation below pH 6. That is not what soil solutions show, and phreeqc.dat and wateq4f.dat
+  leave the species out. It is switched off for the amorphous option only (written out in the
+  `.pqi` file). Nothing else in llnl.dat is changed.
+
+**Effect on results**
+
+The base case keeps the large pool, so S1 does not move. Two scenarios were added to show the
+effect (10 years, t CO2e/ha):
+
+| Scenario | Released | Leaving the NFZ | Held on exchange (NFZ) | Net removal |
+|---|---|---|---|---|
+| S1 Base, large pool | 0.1037 | 0.0088 | 0.0967 | −0.1630 |
+| S6 Base, small pool | 0.1144 | 0.0226 | 0.0940 | −0.1512 |
+| **S9 Base, Andosol acidity** | 0.1055 | 0.0095 | 0.0972 | −0.1623 |
+| S7 Optimistic, small pool | 2.1391 | 0.9488 | 1.1841 | +0.0961 |
+| **S10 As S7, Andosol acidity** | 2.2176 | 0.2454 | 1.9646 | −0.5018 |
+
+**What this shows**
+
+- With the measured CEC at pH 7 honoured, the Andosol model behaves like the large pool, not the
+  small one. The small pool ignores the charge that develops between the soil pH and pH 7.
+- The optimistic scenario (S7) is net positive **only** under the small pool. With the same rock,
+  grain size, glass and rate factor but Andosol acidity (S10), most of the released cations stay
+  on the exchanger for the 10 years and the result is net negative. The acidity pool is therefore
+  as important as the field rate factor, and KCl acidity and ECEC at Lomba da Maia are needed to
+  choose between the pools.
+- Fitted Al exchange constants (log K) for the four Sanguinho soils: 0.90, −0.40, 1.16 and 1.33
+  with amorphous Al(OH)3, against 4.00, 2.72, 4.26 and 4.43 with gibbsite. The llnl.dat value is
+  0.41. Amorphous control is therefore the more consistent choice for an assumed 1 cmol(+)/kg of
+  exchangeable Al, which is why it is the default.
+- In every acidity option the modelled soil-water pH drifts from the measured 5.8 to about 6.1-6.2
+  in the first year, in the control as well. This comes from the starting soil water (0.1 mmol/L
+  Ca, assumed) being more concentrated than the rain that replaces it. It was already in the
+  model and is not changed here; it cancels in rock minus control only to first order.
 
 ## Step 1: data integration (lab files feed the model)
 

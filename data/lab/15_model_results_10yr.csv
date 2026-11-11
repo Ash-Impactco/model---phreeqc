@@ -7,3 +7,5 @@ S5 Base + 20% glass,10,1.55,0.2222,0.0119,0.2208,0.021,0.028,0.2054,0.0238,0.170
 S6 Small acidity pool,10,0.8,0.1144,0.0075,0.1095,0.027,0.0226,0.094,0.0192,0.1704,-0.1512,"model forecast (stand-in data, placeholder emission factors)"
 "S7 Optimistic: small pool, 100 um, 20% glass, field factor 0.3",10,14.89,2.1391,0.2752,1.8679,0.546,0.9488,1.1841,0.8065,0.7104,0.0961,"model forecast (stand-in data, placeholder emission factors)"
 S8 Upper bound: as S7 at lab rates,10,30.66,4.4036,1.8761,2.5849,0.721,3.1879,1.3182,2.7097,0.7104,1.9993,"model forecast (stand-in data, placeholder emission factors)"
+S9 Andosol acidity: exchangeable Al + variable charge,10,0.74,0.1055,0.0029,0.1046,0.009,0.0095,0.0972,0.0081,0.1704,-0.1623,"model forecast (stand-in data, placeholder emission factors)"
+"S10 As S7, with Andosol acidity instead of the small pool",10,15.44,2.2176,0.0608,2.1638,0.178,0.2454,1.9646,0.2086,0.7104,-0.5018,"model forecast (stand-in data, placeholder emission factors)"

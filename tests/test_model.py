@@ -14,8 +14,8 @@ import pytest
 
 from conftest import append_rows
 from erw import data_io
-from erw.model import (co2_potential, default_config, exchange_pool, implied_oxides, mineral_assemblage,
-                       normative_minerals, run, full_input)
+from erw.model import (andosol_pool, co2_potential, default_config, exchange_pool, implied_oxides,
+                       mineral_assemblage, normative_minerals, run, full_input)
 
 ROOT = Path(__file__).resolve().parents[1]
 COLUMNS = {"rock_dissolved_10yr_pct": lambda h: h["frac_diss"][-1] * 100,
@@ -152,3 +152,57 @@ def test_measured_xrd_replaces_the_norm_and_runs(lab_copy):
     norm = data_io.build_config(lab_dir=lab_copy)
     norm["years"] = 1
     assert h["released_t"][-1] > run(norm)["hist"]["released_t"][-1] > 0  # 18 % glass dissolves faster than none
+
+
+# ---------------------------------------------------------------- Andosol acidity: exchangeable Al + variable charge
+@pytest.mark.parametrize("soil", ["SG-04", "SG-05", "SG-01", "SG-02"])
+@pytest.mark.parametrize("phase", ["amorphous", "gibbsite"])
+def test_andosol_pool_reproduces_the_two_measured_charges(soil, phase):
+    cfg = default_config(soil)
+    cfg.update(acidity_mode="andosol", al_phase=phase)
+    a = andosol_pool(cfg)
+    s = cfg["soil"]
+    bases = s["ca"] + s["mg"] + s["k"] + s.get("na", 0.0)
+    charge_soil_ph = a["x_cmol"] + a["frac_charged_at_soil_ph"] * a["y_cmol"]
+    charge_ph7 = a["x_cmol"] + a["frac_charged_at_ph7"] * a["y_cmol"]
+    assert charge_soil_ph == pytest.approx(a["ecec"], rel=1e-6)            # effective CEC at the soil pH
+    assert charge_ph7 == pytest.approx(a["cec7"], rel=1e-6)                # CEC at pH 7
+    assert a["ecec"] == pytest.approx(bases + cfg["effective_acidity_cmol_kg"])
+    assert a["x_cmol"] - a["al_exch_cmol"] + a["bases_on_y"] == pytest.approx(
+        bases if "na" in s else bases + 0.01 * a["ecec"], rel=1e-6)        # every measured cation is placed once
+    assert s["pH"] < a["half_ph"] < 7.0
+    assert sum(a["beta_x"].values()) == pytest.approx(1.0)
+
+
+def test_amorphous_control_is_closer_to_the_database_al_constant_than_gibbsite():
+    for soil in ("SG-04", "SG-05", "SG-01", "SG-02"):
+        fit = {}
+        for phase in ("amorphous", "gibbsite"):
+            cfg = default_config(soil)
+            cfg.update(acidity_mode="andosol", al_phase=phase)
+            fit[phase] = andosol_pool(cfg)["logk_alx3"]
+        assert abs(fit["amorphous"] - 0.41) < abs(fit["gibbsite"] - 0.41), soil
+        assert fit["gibbsite"] - fit["amorphous"] == pytest.approx(3.1, abs=0.3)   # the gap between the two phases
+
+
+def test_andosol_pool_refuses_zero_acidity():
+    cfg = default_config()
+    cfg.update(acidity_mode="andosol", effective_acidity_cmol_kg=0.0)
+    with pytest.raises(ValueError):
+        andosol_pool(cfg)
+
+
+def test_andosol_run_starts_at_the_measured_exchange_state_and_buffers():
+    cfg = default_config()
+    cfg.update(acidity_mode="andosol", years=1)
+    res = run(cfg)
+    a, p = res["acidity_pool"], res["hist"]["profiles"][0]
+    # deepest cell is still close to the starting state: exchangeable Al near the KCl acidity, base
+    # saturation near bases / CEC at pH 7
+    assert p["exal_ctrl"][-1] == pytest.approx(a["al_exch_cmol"], rel=0.35)
+    assert p["bs_ctrl"][-1] == pytest.approx((3.54 + 1.74 + 1.2) / 23.61 * 100, rel=0.08)
+    assert res["hist"]["released_t"][-1] > 0
+    text = full_input(cfg, rock=True)
+    assert "Al(OH)3(a)" in text and "HXv" in text and "AlX3" in text and "Al13O4(OH)24+7" in text
+    cfg["al_phase"] = "gibbsite"
+    assert "Al13O4(OH)24+7" not in full_input(cfg, rock=True)             # llnl.dat left untouched for gibbsite

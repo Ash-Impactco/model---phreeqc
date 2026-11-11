@@ -8,7 +8,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from erw.model import (default_config, run_stream, co2_potential, mineral_assemblage, full_input)
+from erw.model import (default_config, run_stream, co2_potential, mineral_assemblage, full_input, andosol_pool)
 from erw import data_io
 
 st.set_page_config(page_title="Ilha Carbon ERW model", layout="wide")
@@ -60,19 +60,29 @@ with st.sidebar:
         s["ca"] = st.number_input("Exchangeable Ca, cmol(+)/kg", 0.0, 60.0, float(s["ca"]), 0.1)
         s["mg"] = st.number_input("Exchangeable Mg, cmol(+)/kg", 0.0, 30.0, float(s["mg"]), 0.1)
         s["k"] = st.number_input("Exchangeable K, cmol(+)/kg", 0.0, 15.0, float(s["k"]), 0.1)
-        modes = ["pH7_CEC", "effective"]
+        modes = ["pH7_CEC", "effective", "andosol"]
         cfg["acidity_mode"] = st.radio(
             "Soil acidity pool", modes, index=modes.index(cfg["acidity_mode"]),
             format_func=lambda m: {"pH7_CEC": "Large: bases plus acidity at pH 7",
-                                   "effective": "Small: bases plus KCl-exchangeable acidity"}[m])
+                                   "effective": "Small: bases plus KCl-exchangeable acidity",
+                                   "andosol": "Andosol: exchangeable Al plus pH-dependent charge"}[m])
         if cfg["acidity_mode"] == "pH7_CEC":
             st.caption("Uses the measured exchange acidity at pH 7." if "acidity_pH7" in s
                        else "No measured acidity at pH 7 for this soil: CEC at pH 7 minus the bases is used.")
         else:
             cfg["effective_acidity_cmol_kg"] = st.number_input(
-                "KCl-exchangeable acidity, cmol(+)/kg", 0.0, 20.0, float(cfg["effective_acidity_cmol_kg"]), 0.1)
+                "KCl-exchangeable acidity, cmol(+)/kg", 0.05, 20.0, float(cfg["effective_acidity_cmol_kg"]), 0.1)
             st.caption("Measured value for this soil." if "acidity_kcl" in s
                        else "Not measured for this soil: an assumed value. Ask the lab for 1 M KCl acidity.")
+        if cfg["acidity_mode"] == "andosol":
+            phases = ["amorphous", "gibbsite"]
+            cfg["al_phase"] = st.selectbox("Al phase holding soil-water Al", phases, index=phases.index(cfg["al_phase"]),
+                                           format_func=lambda k: {"amorphous": "Amorphous Al(OH)3",
+                                                                  "gibbsite": "Gibbsite"}[k])
+            half = st.number_input("Half-point pH of the variable charge", 4.5, 8.0,
+                                   float(cfg.get("vc_half_ph") or (s["pH"] + 7) / 2), 0.1,
+                                   help="Assumed. Default: midway between the soil pH and 7")
+            cfg["vc_half_ph"] = half
         cfg["bulk_density_kg_m3"] = st.number_input("Bulk density, kg/m³", 300, 1600, int(cfg["bulk_density_kg_m3"]), 50)
 
     with st.expander("Rock chemistry (wt%)", expanded=False):
@@ -104,7 +114,7 @@ with st.sidebar:
 
 # Anything changed by hand in the sidebar is no longer the lab value: say so in the provenance.
 EDITED = "assumed (edited in the app)"
-for key in ("acidity_mode", "effective_acidity_cmol_kg", "bulk_density_kg_m3", "glass_frac", "application_t_ha",
+for key in ("acidity_mode", "al_phase", "effective_acidity_cmol_kg", "bulk_density_kg_m3", "glass_frac", "application_t_ha",
             "drainage_mm_yr", "log_pco2", "temp_c", "field_factor", "roughness", "years"):
     if cfg[key] != base[key] and not (isinstance(cfg[key], (int, float)) and abs(cfg[key] - base[key]) < 1e-9):
         cfg["provenance"][key] = dict(cfg["provenance"].get(key, {}), value=cfg[key], status=EDITED,
@@ -129,6 +139,20 @@ with c3:
     st.caption(f"**Mineralogy in use: {mineral_source}.** Minerals (g per 100 g): " + ", ".join(
         f"{ {'Plag': f'plagioclase An{xan*100:.0f}', 'Kfs':'K-feldspar','Cpx':'diopside','Fo':'forsterite','Fa':'fayalite','Inert':'Fe-Ti oxides and other (inert)','Gls':'basaltic glass'}[k]} {v:.1f}"
         for k, v in g100.items() if v > 0))
+
+if cfg["acidity_mode"] == "andosol":
+    try:
+        ap = andosol_pool(cfg)
+        st.caption(
+            f"**Andosol acidity.** Permanent-charge sites {ap['x_cmol']:.1f} cmol(+)/kg, holding the bases and "
+            f"{ap['al_exch_cmol']:.2f} cmol(+)/kg of exchangeable Al. Variable-charge sites {ap['y_cmol']:.1f} cmol(+)/kg, "
+            f"{ap['frac_charged_at_soil_ph']:.0%} charged at the soil pH and {ap['frac_charged_at_ph7']:.0%} at pH 7 "
+            f"(half-point pH {ap['half_ph']:.1f}, assumed). This reproduces an effective CEC of {ap['ecec']:.1f} at the "
+            f"soil pH and a CEC of {ap['cec7']:.1f} at pH 7. Soil-water Al is held by {ap['al_phase']}. "
+            f"Fitted exchange constant for Al: log K {ap['logk_alx3']:.2f}, against {ap['logk_alx3_database']:.2f} in "
+            f"llnl.dat, which on its own would hold {ap['al_exch_database_cmol']:.2f} cmol(+)/kg of Al.")
+    except ValueError as err:
+        st.error(str(err))
 
 with st.expander("Inputs of this scenario and their status (measured, stand-in, assumed)"):
     st.dataframe(data_io.provenance_table(cfg), use_container_width=True, hide_index=True)

@@ -86,7 +86,10 @@ Values such as `<0.05`, `2850-3000` and `~11` are understood. Leave unknown cell
 - **Rock:** a cation-conserving norm from the oxides (plagioclase, K-feldspar, diopside, forsterite, fayalite, inert Fe-Ti oxides), plus optional basaltic glass. Measured XRD phases replace the norm when table 05 has them.
 - **Grain size:** 5 to 8 bins interpolated from the grading curve in table 03. The fraction finer than the smallest sieve (63 µm) is given an assumed diameter of 30 µm, which carries about two thirds of the surface area.
 - **Dissolution rates:** Palandri & Kharaka (2004), acid and neutral terms, Arrhenius-corrected. Area is geometric surface area × roughness × field factor, with shrinking-core loss. Glass follows an approximate Gislason & Oelkers (2003) rate.
-- **Exchange:** Gaines-Thomas. The soil's acidity is a proton pool calibrated to the measured base saturation, either the "CEC at pH 7" version or a small "effective CEC" version.
+- **Exchange:** Gaines-Thomas. Three options for the soil's acidity:
+  - *Large pool* (default): a proton pool sized as CEC at pH 7 minus the bases, calibrated to the measured base saturation.
+  - *Small pool*: bases plus KCl-exchangeable acidity (effective CEC) only.
+  - *Andosol*: exchangeable Al on the permanent-charge sites, held by amorphous Al(OH)3 or gibbsite, plus a second exchanger for the charge that develops between the soil pH and pH 7. Calibrated to the effective CEC at the soil pH and the CEC at pH 7.
 - **CO2 removed:** extra alkalinity leaving the column base, compared with an identical no-rock column. Cations still held on exchange sites are reported separately and not counted.
 
 ## Isometric alignment (EWA v1.3)

@@ -6,7 +6,7 @@ Mixing depth,20,cm,plan,
 Surface roughness,5,x geometric,assumed,replace with BET
 Field-to-lab rate factor,0.1,,assumed,range 0.01-1; largest uncertainty
 Fe2+/Fe total,0.8,,assumed,measure FeO
-Soil acidity pool,CEC pH7 minus bases,,assumed,or effective CEC with KCl acidity
+Soil acidity pool,CEC pH7 minus bases,,assumed,"other options: effective CEC (bases plus KCl acidity), or Andosol (exchangeable Al plus variable charge)"
 Soil-solution Ca used for calibration,0.1,mmol/L,assumed,
 CO2 per eq alkalinity,1,mol/eq,assumption,bicarbonate at pH < 8
 Glass fraction of the rock,0,fraction,assumed,unknown until XRD with amorphous quantification; scenarios test 0 to 0.2
@@ -16,3 +16,6 @@ Simulation length,10,years,model choice,
 Diameter assumed for the fraction below the smallest sieve,30,um,assumed,no size data below 63 um; this controls most of the surface area; replace with laser PSD
 Near-Field Zone depth,20,cm,per protocol,Isometric EWA v1.3: deeper of 20 cm or tillage depth + 5-10 cm
 eta RiverOcean,0.85,,assumed,placeholder (see 17)
+Aluminium phase controlling soil-water Al,amorphous,,assumed,"Andosol acidity option only: amorphous Al(OH)3 (log K 10.8) or gibbsite (llnl.dat). Amorphous fits the database Al exchange constant better for the Sanguinho soils"
+Half-point pH of the variable charge,,pH,assumed,Andosol acidity option only: blank means midway between the soil pH and 7
+Reactive Al hydroxide in the soil,1.0,mol per kg soil water,assumed,Andosol acidity option only: large enough not to run out; compare with oxalate-extractable Al when measured

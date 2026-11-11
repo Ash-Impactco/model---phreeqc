@@ -218,6 +218,139 @@ def exchange_pool(cfg):
     return cec, beta
 
 
+AL_PHASES = {
+    # name in the PHREEQC input, definition if it is not in llnl.dat, label
+    "gibbsite": ("Gibbsite", "", "gibbsite (llnl.dat, log K 7.76 at 25 °C)"),
+    # llnl.dat carries the Al13 polymer, Al13O4(OH)24+7. At amorphous Al(OH)3 saturation below pH 6 its
+    # equilibrium concentration would be molar, which is not what soil solutions show (the polymer forms
+    # only in partly neutralised concentrated Al solutions), and phreeqc.dat and wateq4f.dat leave it
+    # out. It is switched off for this option only; nothing else in llnl.dat is changed.
+    "amorphous": ("Al(OH)3(a)", """SOLUTION_SPECIES
+28 H2O + 13 Al+3 = Al13O4(OH)24+7 + 32 H+
+  log_k -300
+  -llnl_gamma 6
+PHASES
+Al(OH)3(a)
+  Al(OH)3 + 3 H+ = Al+3 + 3 H2O
+  log_k 10.8
+  delta_h -26.5 kcal
+""", "amorphous Al(OH)3 (log K 10.8 at 25 °C, as in phreeqc.dat and wateq4f.dat; Al13 polymer of llnl.dat off)"),
+}
+LOGK_X = dict(K=0.7, Na=0.0, Ca=0.8, Mg=0.6)       # Gaines-Thomas constants of llnl.dat (and phreeqc.dat)
+LOGK_ALX3_DB = 0.41                                 # Al+3 + 3X- = AlX3 in llnl.dat
+
+
+def _free_al(cfg, s, ca_m, mg_m, k_m, na_m):
+    """Free Al3+ (mol/kgw) in the starting soil water when it is in equilibrium with the chosen Al
+    phase at the soil pH and temperature. A small PHREEQC speciation, so temperature and
+    hydrolysis are handled by the database."""
+    name, definition, _ = AL_PHASES[cfg.get("al_phase", "amorphous")]
+    pp, ip = _instance()
+    ip.run_string(f"""{definition}
+SOLUTION 1
+  temp {cfg['temp_c']}
+  pH {s['pH']}
+  units mmol/kgw
+  Na {na_m*1e3:.6f} ; Cl 0.3 ; Ca {ca_m*1e3:.6f} ; Mg {mg_m*1e3:.6f} ; K {k_m*1e3:.6f}
+  Al 0.001 {name} 0.0
+SELECTED_OUTPUT 1
+  -reset false
+USER_PUNCH 1
+  -headings al3 al_total
+  10 PUNCH MOL("Al+3"), TOT("Al")
+END""")
+    row = ip.get_selected_output_array()[-1]
+    return float(row[0]), float(row[1])
+
+
+def andosol_pool(cfg):
+    """The Andosol acidity model: exchangeable Al plus pH-dependent charge.
+
+    Two exchangers:
+      X  permanent charge, holding Ca, Mg, K, Na and exchangeable Al (AlX3). Soil-solution Al is
+         held by an Al hydroxide phase (gibbsite or amorphous Al(OH)3), so when the pH rises the
+         exchangeable Al comes off and precipitates, using up 3 OH- per Al.
+      Xv variable charge (allophane, imogolite, organic matter): sites that are protonated (HXv,
+         uncharged) at low pH and take up cations as the pH rises. One site type with a half-point pH.
+
+    Calibration, all from the soil report:
+      - charge at the soil pH  = effective CEC  = bases + KCl-exchangeable acidity
+      - charge at pH 7         = CEC at pH 7    (bases + exchange acidity at pH 7 where reported)
+      - exchangeable Al        = KCl-exchangeable acidity (measured, otherwise the assumed setting)
+    The half-point pH of the variable charge is an assumption (default: midway between soil pH and 7).
+    The Gaines-Thomas constant of AlX3 is fitted so that the exchangeable Al is in equilibrium with
+    the Al phase at the soil pH; it is reported next to the database value (0.41) as a check.
+
+    Returns a dict with the sizes (cmol(+)/kg), starting fractions, soil-water composition and
+    fitted constants. Raises ValueError if the soil data cannot be fitted.
+    """
+    s = cfg["soil"]
+    na = s.get("na")
+    al = float(cfg["effective_acidity_cmol_kg"])
+    cat = dict(Ca=s["ca"], Mg=s["mg"], K=s["k"])
+    bases_no_na = sum(cat.values())
+    ecec = bases_no_na + (na or 0.0) + al
+    if na is None:                                    # assumed small Na share of the effective CEC
+        na_amount = cfg.get("na_fraction_default", 0.01) * ecec
+        al = al - na_amount                           # as in the older pools: taken out of the acidity
+    else:
+        na_amount = na
+    cat["Na"] = na_amount
+    if al <= 0:
+        raise ValueError("Andosol acidity: the KCl-exchangeable acidity must be above zero")
+    cec7 = (bases_no_na + (na or 0.0) + s["acidity_pH7"]) if "acidity_pH7" in s else s["cec"]
+    vc = cec7 - ecec                                  # charge that appears between the soil pH and pH 7
+    half = cfg.get("vc_half_ph") or (s["pH"] + 7.0) / 2
+    ca_m = cfg["soil_solution_ca_mol"]
+    cH = lambda ph: 10 ** (-ph)
+    K = {k: 10 ** v for k, v in LOGK_X.items()}
+
+    def site_y(k_h, conc, ph):
+        """Solve the Gaines-Thomas sum of fractions = 1 on Y; return y and the protonated fraction."""
+        a2 = K["Ca"] * conc["Ca"] + K["Mg"] * conc["Mg"]
+        a1 = K["K"] * conc["K"] + K["Na"] * conc["Na"] + k_h * cH(ph)
+        y = (-a1 + math.sqrt(a1 * a1 + 4 * a2)) / (2 * a2)
+        return y, k_h * cH(ph) * y
+
+    on_y = {k: 0.0 for k in cat}                      # cations held on Y at the soil pH (cmol/kg)
+    s_y, k_hy, f0, f7 = 0.0, 0.0, 0.0, 0.0
+    for _ in range(60):
+        x_size = sum(cat[k] - on_y[k] for k in cat) + al
+        if x_size <= al or any(cat[k] - on_y[k] <= 0 for k in cat):
+            raise ValueError("Andosol acidity: the variable charge takes more cations than the soil holds. "
+                             "Check ECEC, CEC at pH 7 and the half-point pH.")
+        beta = {k: (cat[k] - on_y[k]) / x_size for k in cat}
+        y = math.sqrt(beta["Ca"] / (K["Ca"] * ca_m))
+        conc = dict(Ca=ca_m, Mg=beta["Mg"] / (K["Mg"] * y ** 2), K=beta["K"] / (K["K"] * y),
+                    Na=beta["Na"] / (K["Na"] * y))
+        if vc <= 0:
+            break
+        # half of Y protonated at the half-point pH, in this soil water
+        a2 = K["Ca"] * conc["Ca"] + K["Mg"] * conc["Mg"]
+        a1 = K["K"] * conc["K"] + K["Na"] * conc["Na"]
+        y_half = (-a1 + math.sqrt(a1 * a1 + 2 * a2)) / (2 * a2)          # a2 y^2 + a1 y = 0.5
+        k_hy = 0.5 / (cH(half) * y_half)
+        y0, h0 = site_y(k_hy, conc, s["pH"])
+        _, h7 = site_y(k_hy, conc, 7.0)
+        f0, f7 = 1 - h0, 1 - h7
+        s_y = vc / (f7 - f0)
+        new = dict(Ca=s_y * K["Ca"] * conc["Ca"] * y0 ** 2, Mg=s_y * K["Mg"] * conc["Mg"] * y0 ** 2,
+                   K=s_y * K["K"] * conc["K"] * y0, Na=s_y * K["Na"] * conc["Na"] * y0)
+        change = max(abs(new[k] - on_y[k]) for k in cat)
+        on_y = {k: 0.5 * (on_y[k] + new[k]) for k in cat}                # damped fixed point
+        if change < 1e-10:
+            break
+    beta["Al"] = al / x_size
+    al3, al_tot = _free_al(cfg, s, conc["Ca"], conc["Mg"], conc["K"], conc["Na"])
+    logk_al = math.log10(beta["Al"] / (al3 * y ** 3))
+    al_db = 10 ** LOGK_ALX3_DB * al3 * y ** 3 * x_size                  # what the database constant would hold
+    return dict(x_cmol=x_size, y_cmol=s_y, beta_x=beta, conc=conc, logk_hy=math.log10(k_hy) if s_y else None,
+                logk_alx3=logk_al, logk_alx3_database=LOGK_ALX3_DB, al_exch_cmol=al, al_exch_database_cmol=al_db,
+                al3_mol=al3, al_total_mol=al_tot, ecec=ecec, cec7=cec7, variable_charge=vc, half_ph=half,
+                frac_charged_at_soil_ph=f0, frac_charged_at_ph7=f7, bases_on_y=sum(on_y.values()),
+                al_phase=AL_PHASES[cfg.get("al_phase", "amorphous")][2])
+
+
 def reactants(cfg):
     _, _, _, _, rock_g_kgw, _, _ = _geometry(cfg)
     if cfg.get("mineralogy"):
@@ -240,9 +373,9 @@ def reactants(cfg):
     return out
 
 
-def build_setup(cfg, rock=True):
-    s = dict(cfg["soil"])
-    ncells, rock_cells, water, soil_per_kgw, rock_g_kgw, shift_s, _ = _geometry(cfg)
+def _classic_setup(cfg, s, ncells, soil_per_kgw, T):
+    """The original acidity model: one exchanger X whose acidity is a proton pool (HX), with the
+    constant fitted to the measured base saturation at the soil pH."""
     s["cec"], beta = exchange_pool(cfg)
     LOGK = dict(K=0.7, Na=0.0, Ca=0.8, Mg=0.6)
     aH = 10 ** (-s["pH"]); ca_m = cfg["soil_solution_ca_mol"]
@@ -251,7 +384,6 @@ def build_setup(cfg, rock=True):
     k_m = beta["K"] / (10 ** LOGK["K"] * y)
     na_m = beta["Na"] / (10 ** LOGK["Na"] * y)
     logk_h = math.log10(beta["H"] / (aH * y))
-    T = cfg["temp_c"]
     L = [f"""
 EXCHANGE_SPECIES
   H+ + X- = HX
@@ -279,6 +411,76 @@ EQUILIBRIUM_PHASES 1-{ncells}
   Calcite 0 0
   Fe(OH)3 0 0
 """]
+    return L, 'MOL("CaX2"), MOL("MgX2"), MOL("KX"), MOL("NaX"), MOL("HX")', "0"
+
+
+def build_setup(cfg, rock=True):
+    s = dict(cfg["soil"])
+    ncells, rock_cells, water, soil_per_kgw, rock_g_kgw, shift_s, _ = _geometry(cfg)
+    T = cfg["temp_c"]
+    if cfg["acidity_mode"] == "andosol":
+        a = andosol_pool(cfg)
+        c = a["conc"]
+        phase, phase_def, _ = AL_PHASES[cfg.get("al_phase", "amorphous")]
+        y_block = ""
+        if a["y_cmol"] > 0:
+            y_block = f"""EXCHANGE_MASTER_SPECIES
+  Xv Xv-
+EXCHANGE_SPECIES
+  Xv- = Xv-
+  log_k 0
+  Na+ + Xv- = NaXv
+  log_k {LOGK_X['Na']}
+  -llnl_gamma 4
+  K+ + Xv- = KXv
+  log_k {LOGK_X['K']}
+  -llnl_gamma 3
+  Ca+2 + 2Xv- = CaXv2
+  log_k {LOGK_X['Ca']}
+  -llnl_gamma 6
+  Mg+2 + 2Xv- = MgXv2
+  log_k {LOGK_X['Mg']}
+  -llnl_gamma 8
+  H+ + Xv- = HXv
+  log_k {a['logk_hy']:.4f}
+  -gamma 9.0 0.0
+"""
+        L = [f"""
+{phase_def}{y_block}EXCHANGE_SPECIES
+  Al+3 + 3X- = AlX3
+  log_k {a['logk_alx3']:.4f}
+  -llnl_gamma 9
+SOLUTION 0 rain
+  temp {T}
+  pH 5.3
+  units mmol/kgw
+  Na 0.20 ; Cl 0.23 ; Mg 0.02 ; Ca 0.01 ; K 0.005
+SOLUTION 1-{ncells} soil water
+  temp {T}
+  pH {s['pH']}
+  units mmol/kgw
+  Na {c['Na']*1e3:.6f} ; Cl 0.3 ; Ca {c['Ca']*1e3:.6f} ; Mg {c['Mg']*1e3:.6f} ; K {c['K']*1e3:.6f}
+  Al 0.001 {phase} 0.0
+EXCHANGE 1-{ncells}
+  X {a['x_cmol'] * soil_per_kgw / 100.0:.6f}
+{f"  Xv {a['y_cmol'] * soil_per_kgw / 100.0:.6f}" if a['y_cmol'] > 0 else ""}
+  -equilibrate with solution 1
+EQUILIBRIUM_PHASES 1-{ncells}
+  CO2(g) {cfg['log_pco2']} 10
+  O2(g) -0.68 10
+  {phase} 0 {cfg.get('al_reservoir_mol_kgw', 1.0)}
+  Kaolinite 0 0
+  SiO2(am) 0 0
+  Calcite 0 0
+  Fe(OH)3 0 0
+"""]
+        y_on = a["y_cmol"] > 0
+        punch_ex = ('MOL("CaX2") + MOL("CaXv2"), MOL("MgX2") + MOL("MgXv2"), MOL("KX") + MOL("KXv"), '
+                    'MOL("NaX") + MOL("NaXv"), MOL("HXv") + 3*MOL("AlX3") + 2*MOL("AlOHX2")') if y_on else \
+                   'MOL("CaX2"), MOL("MgX2"), MOL("KX"), MOL("NaX"), 3*MOL("AlX3") + 2*MOL("AlOHX2")'
+        punch_al = '3*MOL("AlX3") + 2*MOL("AlOHX2")'
+    else:
+        L, punch_ex, punch_al = _classic_setup(cfg, s, ncells, soil_per_kgw, T)
     punch_bc = "0"
     bc0 = 0.0
     if rock:
@@ -312,11 +514,12 @@ EQUILIBRIUM_PHASES 1-{ncells}
 SELECTED_OUTPUT 1
   -reset false
 USER_PUNCH 1
-  -headings t_s cell pH alk ca mg na k si caX2 mgX2 kX naX hX bc_left calcite
+  -headings t_s cell pH alk ca mg na k si caX2 mgX2 kX naX hX bc_left calcite alX
   10 PUNCH TOTAL_TIME, CELL_NO, -LA("H+"), ALK, TOT("Ca"), TOT("Mg"), TOT("Na"), TOT("K"), TOT("Si")
-  20 PUNCH MOL("CaX2"), MOL("MgX2"), MOL("KX"), MOL("NaX"), MOL("HX")
+  20 PUNCH {punch_ex}
   30 PUNCH {punch_bc}
   40 PUNCH EQUI("Calcite")
+  50 PUNCH {punch_al}
 END
 """)
     return "\n".join(L), bc0
@@ -352,11 +555,11 @@ def _instance():
 def _rows(ip):
     arr = ip.get_selected_output_array()
     if not arr or len(arr) < 2:
-        return np.zeros((0, 16))
+        return np.zeros((0, len(COLS)))
     return np.array([[float(x) if isinstance(x, (int, float)) else np.nan for x in r] for r in arr[1:]])
 
 
-COLS = ["t_s", "cell", "pH", "alk", "ca", "mg", "na", "k", "si", "caX2", "mgX2", "kX", "naX", "hX", "bc_left", "calcite"]
+COLS = ["t_s", "cell", "pH", "alk", "ca", "mg", "na", "k", "si", "caX2", "mgX2", "kX", "naX", "hX", "bc_left", "calcite", "alX"]
 C = {c: i for i, c in enumerate(COLS)}
 
 
@@ -379,6 +582,8 @@ def run_stream(cfg):
     hist = dict(year=[], export_t=[], released_t=[], exchange_t=[], frac_diss=[], ph_top_rock=[],
                 ph_top_ctrl=[], profiles=[])
     effluent = dict(t=[], d_alk=[])
+    pool = andosol_pool(cfg) if cfg["acidity_mode"] == "andosol" else None
+    cec7_eq = pool["cec7"] * soil_per_kgw / 100.0 if pool else None      # eq per kg water, per cell
     iso_cfg = cfg.get("isometric") or INPUTS.get("isometric", {})
     nfz_cells = max(1, int(round(iso_cfg.get("nfz_depth_cm", 20) / cfg["cell_cm"])))
     eta = float(iso_cfg.get("eta_river_ocean", 1.0))
@@ -419,12 +624,15 @@ def run_stream(cfg):
         hist["ph_top_rock"].append(float(np.mean(R[:rock_cells, C["pH"]])))
         hist["ph_top_ctrl"].append(float(np.mean(Cc[:rock_cells, C["pH"]])))
         depth = (np.arange(ncells) + 0.5) * cfg["cell_cm"]
-        cec_eq = lambda A: ex(A) + A[:, C["hX"]]
+        # base saturation: against CEC at pH 7 in the Andosol mode, against the model exchanger otherwise
+        cec_eq = (lambda A: np.full(len(A), cec7_eq)) if pool else (lambda A: ex(A) + A[:, C["hX"]])
         hist["profiles"].append(dict(
             depth_cm=depth.tolist(),
             pH_rock=R[:, C["pH"]].tolist(), pH_ctrl=Cc[:, C["pH"]].tolist(),
             bs_rock=(ex(R) / cec_eq(R) * 100).tolist(), bs_ctrl=(ex(Cc) / cec_eq(Cc) * 100).tolist(),
-            alk_rock=(R[:, C["alk"]] * 1e3).tolist(), alk_ctrl=(Cc[:, C["alk"]] * 1e3).tolist()))
+            alk_rock=(R[:, C["alk"]] * 1e3).tolist(), alk_ctrl=(Cc[:, C["alk"]] * 1e3).tolist(),
+            exal_rock=(R[:, C["alX"]] / soil_per_kgw * 100).tolist(),          # exchangeable Al, cmol(+)/kg
+            exal_ctrl=(Cc[:, C["alX"]] / soil_per_kgw * 100).tolist()))
         # ---- Isometric EWA v1.3 style accounting (Equation 4, NFZ), cumulative to this year, t CO2e/ha
         sorb_nfz = float((ex(R[:nfz_cells]).sum() - ex(Cc[:nfz_cells]).sum()) * water)          # eq/m2
         calc_nfz = float((np.nansum(R[:nfz_cells, C["calcite"]]) - np.nansum(Cc[:nfz_cells, C["calcite"]])) * water)  # mol/m2
@@ -445,7 +653,7 @@ def run_stream(cfg):
                               mg=float(row[C["mg"]]), na=float(row[C["na"]]), k=float(row[C["k"]]),
                               si=float(row[C["si"]]))
         yield dict(year=yr, years=years, potential_full_t_ha=full * cfg["application_t_ha"],
-                   effluent_chem=chem,
+                   effluent_chem=chem, acidity_pool=pool,
                    potential_cons_t_ha=cons * cfg["application_t_ha"],
                    bc0_t_ha=bc0 * water * 44.01 / 100, hist=hist, effluent=effluent)
 

@@ -522,6 +522,8 @@ _SETTING_ROWS = [
     ("14", "setting", "Exchangeable Na share of CEC when not measured", "na_fraction_default", 1.0, ""),
     ("14", "setting", "Simulation length", "years", 1.0, "years"),
     ("14", "setting", "Diameter assumed for the fraction below the smallest sieve", "fines_rep_um", 1.0, "um"),
+    ("14", "setting", "Half-point pH of the variable charge", "vc_half_ph", 1.0, "pH"),
+    ("14", "setting", "Reactive Al hydroxide in the soil", "al_reservoir_mol_kgw", 1.0, "mol/kgw"),
     ("12", "parameter", "Mean soil temperature", "temp_c", 1.0, "°C"),
     ("12", "parameter", "Net drainage below root zone", "drainage_mm_yr", 1.0, "mm/yr"),
     ("12", "parameter", "Soil log pCO2", "log_pco2", 1.0, "log atm"),
@@ -590,10 +592,16 @@ def lab_defaults(lab_dir=LAB):
     # the acidity pool is a text choice
     row = _find_row(tables["14"], "setting", "Soil acidity pool")
     txt = (row["value"] if row is not None else "").lower()
-    d["acidity_mode"] = "effective" if txt.startswith("effective") else "pH7_CEC"
+    d["acidity_mode"] = "andosol" if txt.startswith("andosol") else "effective" if txt.startswith("effective") else "pH7_CEC"
     prov["acidity_mode"] = _prov(d["acidity_mode"], status_class(row["status"]) if row is not None else "assumed",
                                  f"{tables['14'].attrs['file']}: Soil acidity pool" if row is not None
                                  else "fallback data/inputs.json", "")
+    row = _find_row(tables["14"], "setting", "Aluminium phase controlling soil-water Al")
+    txt = (row["value"] if row is not None else "").lower()
+    d["al_phase"] = "gibbsite" if txt.startswith("gibbsite") else "amorphous"
+    prov["al_phase"] = _prov(d["al_phase"], status_class(row["status"]) if row is not None else "assumed",
+                             f"{tables['14'].attrs['file']}: Aluminium phase controlling soil-water Al"
+                             if row is not None else "default in erw/data_io.py", "")
     for k, v in fb["defaults"].items():                      # anything still missing
         if k not in d:
             d[k] = v

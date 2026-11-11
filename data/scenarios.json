@@ -6,5 +6,7 @@
   "S5 Base + 20% glass": {"set": {"glass_frac": 0.2}},
   "S6 Small acidity pool": {"set": {"acidity_mode": "effective"}},
   "S7 Optimistic: small pool, 100 um, 20% glass, field factor 0.3": {"psd": "milled_p80_100um", "set": {"acidity_mode": "effective", "glass_frac": 0.2, "field_factor": 0.3}},
-  "S8 Upper bound: as S7 at lab rates": {"psd": "milled_p80_100um", "set": {"acidity_mode": "effective", "glass_frac": 0.2, "field_factor": 1.0}}
+  "S8 Upper bound: as S7 at lab rates": {"psd": "milled_p80_100um", "set": {"acidity_mode": "effective", "glass_frac": 0.2, "field_factor": 1.0}},
+  "S9 Andosol acidity: exchangeable Al + variable charge": {"set": {"acidity_mode": "andosol"}},
+  "S10 As S7, with Andosol acidity instead of the small pool": {"psd": "milled_p80_100um", "set": {"acidity_mode": "andosol", "glass_frac": 0.2, "field_factor": 0.3}}
 }
