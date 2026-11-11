@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from erw.model import (default_config, run_stream, co2_potential, mineral_assemblage, full_input, andosol_pool)
-from erw import data_io
+from erw import data_io, metals
 
 st.set_page_config(page_title="Ilha Carbon ERW model", layout="wide")
 
@@ -243,7 +243,8 @@ if go_btn:
 if st.session_state.runs:
     st.divider()
     last = st.session_state.get("last")
-    tab1, tabI, tab2, tab3 = st.tabs(["Explore a run", "Isometric accounting", "Compare runs", "Download"])
+    tab1, tabI, tabM, tab2, tab3 = st.tabs(["Explore a run", "Isometric accounting", "Trace metals", "Compare runs",
+                                            "Download"])
     with tab1:
         pick = st.selectbox("Run", list(st.session_state.runs), index=list(st.session_state.runs).index(last))
         R = st.session_state.runs[pick]["res"]; h = R["hist"]
@@ -308,6 +309,31 @@ if st.session_state.runs:
                 use_container_width=True, hide_index=True)
             st.caption("Credits under Isometric are issued conservatively (around the 30th-40th percentile of the "
                        "measured CDR distribution), so a credited figure would sit below this central forecast.")
+    with tabM:
+        run_m = st.session_state.runs[pick]
+        table, note = metals.accumulation(run_m["cfg"], run_m["res"]["hist"])
+        st.caption("Metals the rock adds to the top 0-20 cm of soil, in mg per kg of soil. 'Total added' counts all "
+                   "the metal in the rock, dissolved or not, which is what a total soil analysis would see. "
+                   "'Released' is the part of the Ni, Cr and Co set free as olivine and pyroxene dissolve.")
+        if table.empty:
+            st.info(note)
+        else:
+            st.dataframe(table.round(3), use_container_width=True, hide_index=True)
+            if note:
+                st.caption(note)
+            fm = go.Figure()
+            for i, el in enumerate(metals.HOSTED_IN_OLIVINE_PYROXENE):
+                ys = metals.release_series(run_m["cfg"], run_m["res"]["hist"], el)
+                if ys:
+                    fm.add_trace(go.Scatter(x=run_m["res"]["hist"]["year"], y=ys, name=el,
+                                            line=dict(color=PALETTE[i], width=3)))
+            if fm.data:
+                fm.update_layout(title="Ni, Cr and Co released into the topsoil", xaxis_title="Years after spreading",
+                                 yaxis_title="mg per kg of soil", height=360, margin=dict(l=10, r=10, t=50, b=10))
+                st.plotly_chart(fm, use_container_width=True)
+                st.caption("How much of the rock's nickel, chromium and cobalt has been set free so far. It assumes "
+                           "all of it sits in olivine and pyroxene and that none leaves the topsoil, so it is on "
+                           "the high side.")
     with tab2:
         f = go.Figure()
         for i, (nm, run) in enumerate(st.session_state.runs.items()):

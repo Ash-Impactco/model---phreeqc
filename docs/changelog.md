@@ -15,9 +15,31 @@ model forecasts on stand-in data, in t CO2e per hectare. They are not creditable
 | | *S1 with seasonal drainage switched on (scenario S11, assumed pattern)* | *0.1039* | *0.0027* | *0.0081* | *−0.1635* |
 | 2.4 | Plant uptake sink added, zero until the share leaving the field is known | 0.1037 | 0.0028 | 0.0083 | −0.1633 |
 | | *S1 with all grass carried off (scenario S12, upper bound)* | *0.1185* | *0.0029* | *0.0087* | *−0.1630* |
+| 2.5 | Trace metals (post-processing only; no effect on the chemistry) | 0.1037 | 0.0028 | 0.0083 | −0.1633 |
 
 The Step 0 numbers stay reproducible with `python scripts/run_batch.py --source json`, and a test
 checks them on every run (`tests/reference/step0_results.csv`).
+
+## Step 2.5: trace metals
+
+**What changed**
+
+- `erw/metals.py` and a "Trace metals" tab in the app. For each element with a value in
+  `06_rock_trace_metals.csv` it reports the rise in the topsoil's total content (all the metal in
+  the rock, mixed into 0-20 cm) and, for Ni, Cr and Co, the part released as olivine and pyroxene
+  dissolve. Both are in mg per kg of soil, set against the baseline and the limit in the new
+  `20_trace_metal_limits.csv`.
+- The model now records the rock mass left in each mineral and each grain-size bin every year
+  (also needed for the dissolution charts in Step 3).
+- **All inputs are blank**: table 06 has no values yet and table 20 waits for your limits. With
+  blank inputs the tab says so and shows no numbers. Nothing was assumed.
+
+**Assumptions built in** (both on the high side for accumulation): all Ni, Cr and Co is taken to
+sit in olivine and pyroxene, and released metals stay in the topsoil.
+
+**Effect on results:** none. For scale only: at 40 t/ha into 1,600 t/ha of topsoil, every
+100 mg/kg in the rock adds about 2.4 mg/kg to the soil's total content. In S1 only 0.66 % of the
+olivine and pyroxene dissolves in 10 years, so the released part would be under 1 % of that.
 
 ## Step 2.4: plant uptake and grazing
 

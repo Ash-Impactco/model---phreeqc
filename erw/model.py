@@ -488,6 +488,8 @@ EQUILIBRIUM_PHASES 1-{ncells}
         L, punch_ex, punch_al, c = _classic_setup(cfg, s, ncells, soil_per_kgw, T)
     punch_bc = "0"
     bc0 = 0.0
+    by_mineral = {k: [] for k in MINERAL_KEYS}          # PHREEQC expressions for the mass left (g per kg water)
+    by_bin = [[] for _ in range(MAX_BINS)]
     if rock:
         rates, kin, terms = [], [], []
         for name, formula, mw, chg, g_min, (lka, ea, na, lkn, en) in reactants(cfg):
@@ -500,6 +502,8 @@ EQUILIBRIUM_PHASES 1-{ncells}
                 geo_area = g * 6.0 / (cfg.get("density_g_m3", INPUTS["feedstock"]["density_g_m3"]) * d)
                 area = geo_area * cfg["roughness"]
                 rn = f"{name}_{b}"
+                by_mineral[name].append(f'KIN("{rn}")*{mw}')
+                by_bin[min(b, MAX_BINS - 1)].append(f'KIN("{rn}")*{mw}')
                 if name == "Gls" and cfg.get("glass_rate_law", "approximate") == "gislason_oelkers_2003":
                     go = cfg.get("glass_go") or GLASS_GO2003
                     al_phase = AL_PHASES[cfg.get("al_phase", "amorphous")][0] if cfg["acidity_mode"] == "andosol" else "Gibbsite"
@@ -554,13 +558,15 @@ EQUILIBRIUM_PHASES 1-{ncells}
 SELECTED_OUTPUT 1
   -reset false
 USER_PUNCH 1
-  -headings t_s cell pH alk ca mg na k si caX2 mgX2 kX naX hX bc_left calcite alX upt
+  -headings t_s cell pH alk ca mg na k si caX2 mgX2 kX naX hX bc_left calcite alX upt {" ".join(EXTRA_COLS)}
   10 PUNCH TOTAL_TIME, CELL_NO, -LA("H+"), ALK, TOT("Ca"), TOT("Mg"), TOT("Na"), TOT("K"), TOT("Si")
   20 PUNCH {punch_ex}
   30 PUNCH {punch_bc}
   40 PUNCH EQUI("Calcite")
   50 PUNCH {punch_al}
   60 PUNCH {punch_up}
+  70 PUNCH {", ".join(" + ".join(v) if v else "0" for v in by_mineral.values())}
+  80 PUNCH {", ".join(" + ".join(v) if v else "0" for v in by_bin)}
 END
 """)
     return "\n".join(L), bc0
@@ -683,7 +689,11 @@ def _rows(ip):
     return np.array([[float(x) if isinstance(x, (int, float)) else np.nan for x in r] for r in arr[1:]])
 
 
-COLS = ["t_s", "cell", "pH", "alk", "ca", "mg", "na", "k", "si", "caX2", "mgX2", "kX", "naX", "hX", "bc_left", "calcite", "alX", "upt"]
+MINERAL_KEYS = ["Plag", "Kfs", "Cpx", "Fo", "Fa", "Gls"]
+MAX_BINS = 8
+EXTRA_COLS = [f"m_{k}" for k in MINERAL_KEYS] + [f"b{i}" for i in range(MAX_BINS)]
+COLS = ["t_s", "cell", "pH", "alk", "ca", "mg", "na", "k", "si", "caX2", "mgX2", "kX", "naX", "hX", "bc_left", "calcite",
+        "alX", "upt"] + EXTRA_COLS
 C = {c: i for i, c in enumerate(COLS)}
 
 
@@ -714,6 +724,20 @@ def run_stream(cfg):
     emis = project_emissions_t_ha(cfg)
     cum_export_nfz = 0.0
     hist["iso"] = []
+    # rock mass by mineral and by grain-size bin (g per m2), at the start and at each year end
+    per_m2 = rock_cells * water
+    init_min = {k: 0.0 for k in MINERAL_KEYS}
+    init_bin = [0.0] * MAX_BINS
+    for name, _f, _mw, _chg, g_min, _r in reactants(cfg):
+        init_min[name] += g_min * per_m2
+        for b, (frac, _d) in enumerate(cfg["psd"]):
+            init_bin[min(b, MAX_BINS - 1)] += g_min * frac * per_m2
+    hist["mineral_init_g_m2"] = init_min
+    hist["mineral_left_g_m2"] = {k: [] for k in MINERAL_KEYS}
+    hist["bin_init_g_m2"] = init_bin[:len(cfg["psd"])]
+    hist["bin_left_g_m2"] = [[] for _ in cfg["psd"]]
+    hist["bin_diameter_um"] = [d * 1e6 for _f, d in cfg["psd"]]
+    hist["host_frac_diss"] = []          # share of olivine + pyroxene dissolved (hosts of Ni, Cr, Co)
     seasonal = bool(cfg.get("seasonal_drainage")) and cfg.get("drainage_monthly_share")
     times = [0.0] + shift_times(cfg, int(round(spy * years)) + 1) if seasonal else None
     for yr in range(1, years + 1):
@@ -771,6 +795,13 @@ def run_stream(cfg):
         hist["frac_diss"].append(1 - bc_left / bc0 if bc0 else 0.0)
         hist["ph_top_rock"].append(float(np.mean(R[:rock_cells, C["pH"]])))
         hist["ph_top_ctrl"].append(float(np.mean(Cc[:rock_cells, C["pH"]])))
+        for k in MINERAL_KEYS:
+            hist["mineral_left_g_m2"][k].append(float(np.nansum(R[:rock_cells, C[f"m_{k}"]]) * water))
+        for b in range(len(cfg["psd"])):
+            hist["bin_left_g_m2"][b].append(float(np.nansum(R[:rock_cells, C[f"b{min(b, MAX_BINS - 1)}"]]) * water))
+        host0 = sum(init_min[k] for k in ("Cpx", "Fo", "Fa"))
+        host = sum(hist["mineral_left_g_m2"][k][-1] for k in ("Cpx", "Fo", "Fa"))
+        hist["host_frac_diss"].append(1 - host / host0 if host0 else 0.0)
         depth = (np.arange(ncells) + 0.5) * cfg["cell_cm"]
         # base saturation: against CEC at pH 7 in the Andosol mode, against the model exchanger otherwise
         cec_eq = (lambda A: np.full(len(A), cec7_eq)) if pool else (lambda A: ex(A) + A[:, C["hX"]])
