@@ -86,7 +86,7 @@ def test_measurement_on_another_rock_or_site_is_a_stand_in():
 # ---------------------------------------------------------------- tables
 def test_every_table_loads_with_status():
     tables = data_io.load_all()
-    assert len(tables) == 18
+    assert len(tables) == 19
     for stem, df in tables.items():
         assert len(df) > 0, stem
         assert df.attrs["ragged_rows"] == [], f"{stem}: rows do not match the header"
@@ -304,3 +304,23 @@ def test_old_scenario_names_still_work():
         data_io.build_config("no-such-soil")
     with pytest.raises(KeyError):
         data_io.build_config(rock="TV-FINES-01")                         # oxides not filled in yet
+
+
+# ---------------------------------------------------------------- plant uptake (table 19)
+def test_plant_uptake_is_zero_until_the_share_leaving_the_field_is_known():
+    cfg = data_io.build_config()
+    assert cfg["uptake_kg_ha_yr"] == dict(Ca=0.0, Mg=0.0, K=0.0)
+    assert cfg["uptake_gross_kg_ha_yr"] == dict(Ca=24.0, Mg=12.0, K=183.0)      # 6 t DM/ha x 4, 2 and 30.5 g/kg
+    assert cfg["provenance"]["uptake_kg_ha_yr"]["status"] == "to measure"
+
+
+def test_plant_uptake_from_share_and_milk(lab_copy):
+    p = lab_copy / "19_plant_uptake_and_grazing.csv"
+    text = p.read_text()
+    text = text.replace("Share of herbage cations that leave the field,,", "Share of herbage cations that leave the field,0.5,")
+    text = text.replace("Milk sold per hectare,,", "Milk sold per hectare,8000,")      # test fixture
+    p.write_text(text)
+    cfg = data_io.build_config(lab_dir=lab_copy)
+    assert cfg["uptake_kg_ha_yr"]["Ca"] == pytest.approx(0.5 * 24 + 8000 * 1.2 / 1000)
+    assert cfg["uptake_kg_ha_yr"]["K"] == pytest.approx(0.5 * 183 + 8000 * 1.3 / 1000)
+    assert cfg["provenance"]["uptake_kg_ha_yr"]["status"] == "assumed"

@@ -706,6 +706,50 @@ def emission_factors(lab_dir=LAB):
     return e, prov
 
 
+def plant_uptake(lab_dir=LAB):
+    """Net yearly removal of Ca, Mg and K from the field (kg/ha/yr) from table 19, by two routes:
+    herbage carried off (yield x content x share leaving the field) and milk sold (litres x content).
+    A blank share and a blank milk figure give zero: nothing is assumed. Returns (cfg entries, provenance)."""
+    try:
+        df = read_table("19", lab_dir)
+    except KeyError:
+        return {"uptake_kg_ha_yr": dict(Ca=0.0, Mg=0.0, K=0.0)}, {}
+    get = lambda label: (lambda r: (num(r["value"]), status_class(r["status"])) if r is not None else (None, ""))(
+        _find_row(df, "item", label))
+    yield_t, y_status = get("Pasture dry-matter yield")
+    share, s_status = get("Share of herbage cations that leave the field")
+    milk, m_status = get("Milk sold per hectare")
+    out, gross, statuses = {}, {}, set()
+    for el in ("Ca", "Mg", "K"):
+        herb, h_status = get(f"{el} in herbage")
+        in_milk, k_status = get(f"{el} in milk")
+        gross[el] = (yield_t or 0.0) * (herb or 0.0)                       # t DM/ha x g/kg = kg/ha
+        v = 0.0
+        if share is not None and yield_t is not None and herb is not None:
+            v += share * gross[el]
+            statuses |= {y_status, h_status, s_status}
+        if milk is not None and in_milk is not None:
+            v += milk * in_milk / 1000.0                                   # L/ha x g/L = g/ha -> kg/ha
+            statuses |= {m_status, k_status}
+        out[el] = v
+    cfg = {"uptake_kg_ha_yr": out, "uptake_gross_kg_ha_yr": gross}
+    depth, d_status = get("Rooting depth for uptake")
+    if depth is not None:
+        cfg["root_depth_cm"] = depth
+    km, _ = get("Half-saturation of uptake as a share of the starting soil-water concentration")
+    if km is not None:
+        cfg["uptake_km_fraction"] = km
+    active = any(v > 0 for v in out.values())
+    status = ("assumed" if "assumed" in statuses or "to measure" in statuses else
+              "stand-in" if "stand-in" in statuses else "measured") if active else "to measure"
+    prov = {"uptake_kg_ha_yr": _prov({k: round(v, 2) for k, v in out.items()}, status,
+                                     f"{df.attrs['file']}: " + ("yield x herbage content x share leaving, plus milk"
+                                                                if active else "no removal: share leaving the field "
+                                                                               "and milk sold are not filled in"),
+                                     "kg/ha/yr")}
+    return cfg, prov
+
+
 # ====================================================================== the model configuration
 def build_config(soil: str = DEFAULT_SOIL, psd: str = AS_IS_PSD, rock: str = DEFAULT_ROCK, lab_dir=LAB) -> dict:
     """A complete model configuration from the lab files, with a provenance record for every input.
@@ -723,6 +767,9 @@ def build_config(soil: str = DEFAULT_SOIL, psd: str = AS_IS_PSD, rock: str = DEF
     cfg = dict(d)
     cfg["isometric"] = iso
     cfg["emissions"] = emis
+    up, p4 = plant_uptake(lab_dir)
+    cfg.update(up)
+    prov.update(p4)
     glass_go = rates.pop("_glass_go", None)
     if glass_go:
         cfg["glass_go"] = glass_go

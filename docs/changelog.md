@@ -13,9 +13,57 @@ model forecasts on stand-in data, in t CO2e per hectare. They are not creditable
 | 2.2 | Glass: full Gislason & Oelkers (2003) rate law (S1 has no glass, so unchanged) | 0.1037 | 0.0029 | 0.0088 | −0.1630 |
 | 2.3 | Correction: the year-end state was counted twice in the export sum | 0.1037 | 0.0028 | 0.0083 | −0.1633 |
 | | *S1 with seasonal drainage switched on (scenario S11, assumed pattern)* | *0.1039* | *0.0027* | *0.0081* | *−0.1635* |
+| 2.4 | Plant uptake sink added, zero until the share leaving the field is known | 0.1037 | 0.0028 | 0.0083 | −0.1633 |
+| | *S1 with all grass carried off (scenario S12, upper bound)* | *0.1185* | *0.0029* | *0.0087* | *−0.1630* |
 
 The Step 0 numbers stay reproducible with `python scripts/run_batch.py --source json`, and a test
 checks them on every run (`tests/reference/step0_results.csv`).
+
+## Step 2.4: plant uptake and grazing
+
+**What changed**
+
+- A sink that removes Ca, Mg and K from the root zone (0-20 cm) every year, in the rock column and
+  in the control column. Each cation is taken up in exchange for H⁺, as roots do, so removal
+  acidifies the soil. Uptake is demand-driven and supply-limited (Michaelis-Menten), so it takes
+  close to the stated amount unless the soil water runs short.
+- Inputs are in the new table `19_plant_uptake_and_grazing.csv`. Net removal = pasture yield ×
+  herbage content × share leaving the field, plus milk sold × milk content.
+- The Isometric term **BiomassLoss** is now calculated: extra cations removed in biomass, rock
+  minus control.
+
+**Status of the inputs: this could only be done in part**
+
+| Input | Value | Status |
+|---|---|---|
+| Pasture yield | 6 (5-7) t DM/ha/yr | **stand-in**: São Miguel dairy farms, Morais et al. (2018). Read from a search summary, not from the paper: check it |
+| Ca, Mg, K in herbage | 4.0, 2.0, 30.5 g/kg DM | **assumed**: general extension table, not Azorean. I found no Azorean herbage analyses |
+| Ca, Mg, K in milk | 1.2, 0.1, 1.3 g/L | **assumed**: general dairy text |
+| Share of herbage cations leaving the field | blank | **to find**. 1 for silage or hay taken away, far less under grazing |
+| Milk sold per hectare | blank | **to find** (farm records) |
+
+Because the last two are unknown, the sink is **zero in the base case** and BiomassLoss stays 0.
+I did not guess a grazing share.
+
+**Effect on results** (10 years, t CO2e/ha)
+
+| Scenario | Released | Leaving the NFZ | Removed in grass, rock / control | BiomassLoss | Net removal |
+|---|---|---|---|---|---|
+| S1 Base, no removal | 0.1037 | 0.0083 | 0 / 0 | 0 | −0.1633 |
+| **S12 All grass carried off** | 0.1185 | 0.0087 | 1.660 / 1.659 | 0.0005 | −0.1630 |
+
+**What this shows**
+
+- Even the upper bound barely changes the removal figures. The grass takes the same amount with
+  and without rock, so the difference (BiomassLoss) is close to zero, and the extra acidity from
+  harvest raises rock dissolution by 14 %.
+- The gross uptake (24 kg Ca, 12 kg Mg, 183 kg K per hectare per year) equals about 0.30 t CO2e/ha
+  each year, three times what the rock releases in 10 years in S1. So for detection, the yearly
+  cycling of K through grass, dung and urine is a far larger signal than the weathering. This
+  matters for the sampling design more than for the accounting.
+- In S12 the grass can take only 55 % of the stated amount over 10 years, because the model has no
+  fertiliser, slurry or soil-mineral supply and the exchangeable K runs down. Treat S12 as a
+  bound, not a forecast.
 
 ## Step 2.3: seasonal drainage, and a correction to the export sum
 

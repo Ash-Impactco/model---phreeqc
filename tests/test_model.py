@@ -278,3 +278,24 @@ def test_seasonal_run_keeps_the_yearly_totals():
     assert b["effluent"]["t"][-1] < 2.0 and len(a["effluent"]["t"]) == len(b["effluent"]["t"])   # same number of shifts
     assert b["hist"]["released_t"][-1] == pytest.approx(a["hist"]["released_t"][-1], rel=0.05)
     assert full_input(seasonal).count("TRANSPORT") > 4 and full_input(steady).count("TRANSPORT") == 1
+
+
+# ---------------------------------------------------------------- plant uptake
+def test_uptake_is_off_by_default_and_leaves_the_input_unchanged():
+    text, _ = build_setup(default_config(), rock=True)
+    assert "Uptake_" not in text
+    ctrl, _ = build_setup(default_config(), rock=False)
+    assert "KINETICS" not in ctrl
+
+
+def test_uptake_removes_close_to_the_stated_amount_in_both_columns():
+    cfg = default_config()
+    cfg.update(years=2, uptake_share_removed=0.1)                 # 2.4 Ca, 1.2 Mg, 18.3 K kg/ha/yr
+    text, _ = build_setup(cfg, rock=False)
+    assert "Uptake_K" in text and "-formula K 1 H -1" in text and "-formula Ca 1 H -2" in text
+    i = run(cfg)["hist"]["iso"][-1]
+    stated = (2 * 2.4 / 40.078 + 2 * 1.2 / 24.305 + 18.3 / 39.098) * 0.1 * 44.01 / 100 * 2      # t CO2e/ha in 2 years
+    assert i["uptake_ctrl"] == pytest.approx(stated, rel=0.15)
+    assert i["uptake_rock"] == pytest.approx(i["uptake_ctrl"], rel=0.01)   # demand-driven: nearly the same with rock
+    assert i["biomass_loss"] == pytest.approx(i["uptake_rock"] - i["uptake_ctrl"], abs=1e-9)
+    assert abs(i["non_carbonic_neut"]) < 0.05 * i["weathering"]   # the budget still closes with the sink in it

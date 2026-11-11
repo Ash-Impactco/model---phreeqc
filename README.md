@@ -18,6 +18,7 @@ Every input is read from the lab files in `data/lab/` and keeps its status: **me
 | `erw/samples.py`, `scripts/run_samples.py` | One model run per soil composite, in parallel, plus a site-mean run |
 | `data/inputs.json` | The original inputs. Now only a fallback for values the lab files do not hold, and the frozen Step 0 reference |
 | `data/scenarios.json` | Scenarios for the batch run |
+| `data/lab/19_plant_uptake_and_grazing.csv` | Pasture yield, herbage and milk mineral contents, and the share that leaves the field (still to find) |
 | `tests/` | Automated checks (`python -m pytest`) |
 | `docs/changelog.md` | Every change and its effect on the base-case numbers |
 | `data/llnl.dat` | PHREEQC thermodynamic database (USGS, public domain) |
@@ -117,4 +118,4 @@ The soil model gives the chemistry of water draining below the root zone. The gr
 
 ## Main limitations
 
-Mineralogy is normative. Rates are lab rates scaled by an assumed field factor. Andosol acid buffering is simplified to one pool. Flow is steady, with no seasons. There is no plant uptake or grazing removal, and no trace metals.
+Mineralogy is normative. Rates are lab rates scaled by an assumed field factor. The Andosol acidity option rests on an assumed KCl acidity. Seasonal drainage uses an assumed monthly pattern and a constant temperature. Plant removal is available but zero by default, because the share of grass cations that leaves the field under grazing is not known. There are no fertiliser or slurry inputs and no trace metals yet. The modelled soil-water pH drifts from the measured value to about 6.1 to 6.2 in the first year, in the control as well, because the assumed starting soil water is more concentrated than the rain that replaces it.

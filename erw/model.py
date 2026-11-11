@@ -415,7 +415,8 @@ EQUILIBRIUM_PHASES 1-{ncells}
   Calcite 0 0
   Fe(OH)3 0 0
 """]
-    return L, 'MOL("CaX2"), MOL("MgX2"), MOL("KX"), MOL("NaX"), MOL("HX")', "0"
+    return (L, 'MOL("CaX2"), MOL("MgX2"), MOL("KX"), MOL("NaX"), MOL("HX")', "0",
+            dict(Ca=ca_m, Mg=mg_m, K=k_m, Na=na_m))
 
 
 def build_setup(cfg, rock=True):
@@ -484,7 +485,7 @@ EQUILIBRIUM_PHASES 1-{ncells}
                    'MOL("CaX2"), MOL("MgX2"), MOL("KX"), MOL("NaX"), 3*MOL("AlX3") + 2*MOL("AlOHX2")'
         punch_al = '3*MOL("AlX3") + 2*MOL("AlOHX2")'
     else:
-        L, punch_ex, punch_al = _classic_setup(cfg, s, ncells, soil_per_kgw, T)
+        L, punch_ex, punch_al, c = _classic_setup(cfg, s, ncells, soil_per_kgw, T)
     punch_bc = "0"
     bc0 = 0.0
     if rock:
@@ -532,22 +533,84 @@ EQUILIBRIUM_PHASES 1-{ncells}
   -end""")
                 kin.append(f"  {rn}\n    -formula {formula} 1\n    -m0 {mol:.6e}\n    -m {mol:.6e}")
                 terms.append(f'KIN("{rn}")*{chg}')
-        L.append("RATES\n" + "\n".join(rates))
-        L.append(f"KINETICS 1-{rock_cells}\n" + "\n".join(kin) + "\n  -step_divide 10")
         punch_bc = " + ".join(terms)
+    else:
+        rates, kin = [], []
+    # ---- plant uptake: removal of Ca, Mg and K from the root zone, in the rock and the control column
+    up_rates, up_kin, root_cells = uptake_block(cfg, c, water)
+    if up_kin:
+        L.append("RATES\n" + "\n".join(rates + up_rates))
+        for cell in range(1, max(rock_cells if rock else 0, root_cells) + 1):
+            parts = (kin if rock and cell <= rock_cells else []) + (up_kin if cell <= root_cells else [])
+            if parts:
+                L.append(f"KINETICS {cell}\n" + "\n".join(parts) + "\n  -step_divide 10")
+        punch_up = '2*KIN("Uptake_Ca") + 2*KIN("Uptake_Mg") + KIN("Uptake_K")'
+    else:
+        if rock:
+            L.append("RATES\n" + "\n".join(rates))
+            L.append(f"KINETICS 1-{rock_cells}\n" + "\n".join(kin) + "\n  -step_divide 10")
+        punch_up = "0"
     L.append(f"""
 SELECTED_OUTPUT 1
   -reset false
 USER_PUNCH 1
-  -headings t_s cell pH alk ca mg na k si caX2 mgX2 kX naX hX bc_left calcite alX
+  -headings t_s cell pH alk ca mg na k si caX2 mgX2 kX naX hX bc_left calcite alX upt
   10 PUNCH TOTAL_TIME, CELL_NO, -LA("H+"), ALK, TOT("Ca"), TOT("Mg"), TOT("Na"), TOT("K"), TOT("Si")
   20 PUNCH {punch_ex}
   30 PUNCH {punch_bc}
   40 PUNCH EQUI("Calcite")
   50 PUNCH {punch_al}
+  60 PUNCH {punch_up}
 END
 """)
     return "\n".join(L), bc0
+
+
+ATOMIC = dict(Ca=40.078, Mg=24.305, K=39.098)
+VALENCE = dict(Ca=2, Mg=2, K=1)
+
+
+def uptake_reference(cfg):
+    """Net removal of Ca, Mg and K (kg/ha/yr). Normally cfg["uptake_kg_ha_yr"] from table 19. A scenario
+    may instead set cfg["uptake_share_removed"]: that share of the gross herbage uptake (yield x content)."""
+    share = cfg.get("uptake_share_removed")
+    if share is not None:
+        return {k: float(share) * v for k, v in (cfg.get("uptake_gross_kg_ha_yr") or {}).items()}
+    return cfg.get("uptake_kg_ha_yr") or {}
+
+
+def uptake_block(cfg, conc, water):
+    """PHREEQC RATES and KINETICS text for plant uptake, and the number of root-zone cells.
+
+    cfg["uptake_kg_ha_yr"] gives the net yearly removal of Ca, Mg and K from the field (in grass
+    carried off, or in milk and animals sold). Removal is driven by plant demand and limited by
+    supply (Michaelis-Menten): rate = Vmax c / (Km + c), with Km a small fraction of the starting
+    soil-water concentration (cfg["uptake_km_fraction"], assumed 0.02) and Vmax set so that the
+    rate equals the stated removal at the starting concentration. So the sink takes close to the
+    stated amount each year, a little more where the soil water is richer, and tails off only if
+    the soil runs short. Each cation is taken up in exchange for H+ (formula Ca 1 H -2 removed
+    from solution), which is how roots keep their charge balance and why harvest acidifies soil.
+    The same sink acts in the rock and the control column.
+    """
+    ref = uptake_reference(cfg)
+    root_cells = max(1, int(round(cfg.get("root_depth_cm", 20) / cfg["cell_cm"])))
+    rates, kin = [], []
+    for el in ("Ca", "Mg", "K"):
+        kg = float(ref.get(el, 0.0) or 0.0)
+        if kg <= 0:
+            continue
+        mol_kgw_yr = 0.1 * kg / ATOMIC[el] / (root_cells * water)          # kg/ha -> mol/m2 -> per kg of root-zone water
+        km = float(cfg.get("uptake_km_fraction", 0.02)) * conc[el]         # mol/kgw
+        vmax = mol_kgw_yr * (km + conc[el]) / conc[el] / (365.25 * 86400)  # mol/kgw/s
+        rates.append(f"""Uptake_{el}
+  -start
+  10 c = TOT("{el}")
+  20 moles = -{vmax:.6e} * c / ({km:.6e} + c) * time
+  30 if (-moles > 0.9*c) then moles = -0.9*c
+  40 save moles
+  -end""")
+        kin.append(f"  Uptake_{el}\n    -formula {el} 1 H -{VALENCE[el]}\n    -m0 0\n    -m 0")
+    return rates, kin, root_cells
 
 
 MONTH_DAYS = [31, 28.25, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
@@ -620,7 +683,7 @@ def _rows(ip):
     return np.array([[float(x) if isinstance(x, (int, float)) else np.nan for x in r] for r in arr[1:]])
 
 
-COLS = ["t_s", "cell", "pH", "alk", "ca", "mg", "na", "k", "si", "caX2", "mgX2", "kX", "naX", "hX", "bc_left", "calcite", "alX"]
+COLS = ["t_s", "cell", "pH", "alk", "ca", "mg", "na", "k", "si", "caX2", "mgX2", "kX", "naX", "hX", "bc_left", "calcite", "alX", "upt"]
 C = {c: i for i, c in enumerate(COLS)}
 
 
@@ -722,11 +785,15 @@ def run_stream(cfg):
         sorb_nfz = float((ex(R[:nfz_cells]).sum() - ex(Cc[:nfz_cells]).sum()) * water)          # eq/m2
         calc_nfz = float((np.nansum(R[:nfz_cells, C["calcite"]]) - np.nansum(Cc[:nfz_cells, C["calcite"]])) * water)  # mol/m2
         rel_nfz = released  # all rock sits inside the NFZ when mix depth <= NFZ depth
-        noncarb = rel_nfz - cum_export_nfz - sorb_nfz - 2 * calc_nfz                             # residual, eq/m2
-        bracket = to_t(rel_nfz) - 0.0 - to_t(calc_nfz) - to_t(sorb_nfz) - to_t(noncarb)
+        # extra base cations taken off in biomass (rock minus control), cumulative, eq/m2
+        up_r, up_c = float(np.nansum(R[:, C["upt"]]) * water), float(np.nansum(Cc[:, C["upt"]]) * water)
+        biomass = up_r - up_c
+        noncarb = rel_nfz - cum_export_nfz - sorb_nfz - 2 * calc_nfz - biomass                  # residual, eq/m2
+        bracket = to_t(rel_nfz) - to_t(biomass) - to_t(calc_nfz) - to_t(sorb_nfz) - to_t(noncarb)
         stored = bracket * eta
         hist["iso"].append(dict(
-            year=yr, weathering=to_t(rel_nfz), biomass_loss=0.0, net_new_carbonate=to_t(calc_nfz),
+            year=yr, weathering=to_t(rel_nfz), biomass_loss=to_t(biomass), net_new_carbonate=to_t(calc_nfz),
+            uptake_rock=to_t(up_r), uptake_ctrl=to_t(up_c),
             net_new_silicate=0.0, net_sorption=to_t(sorb_nfz), non_carbonic_neut=to_t(noncarb),
             exported_from_nfz=to_t(cum_export_nfz), eta_river_ocean=eta, stored=stored,
             counterfactual="subtracted (rock minus no-rock control)", emissions=emis["total"],

@@ -7,3 +7,7 @@ Beerling et al. (2024) PNAS,field ERW rates (reference point),
 "Kanzaki et al. (2022) GMD, SCEPTER",phase 2 reactive transport,
 "Isometric, Enhanced Weathering in Agriculture v1.3",field protocol,https://registry.isometric.com/protocol/enhanced-weathering-agriculture/1.3
 "Isometric, Rock and Mineral Feedstock Characterization v1.2",rock testing,https://registry.isometric.com/module/rock-and-mineral-feedstock-characterization/1.2
+"Morais et al. (2018) Carbon footprint of milk from pasture-based dairy farms in Azores, Portugal. Sustainability 10(10), 3658",Azorean pasture yield (table 19),https://www.mdpi.com/2071-1050/10/10/3658
+"Penn State Extension, Average nutrient composition of typical high quality pastures (dry matter basis)","herbage Ca, Mg, K (table 19, not Azorean)",https://extension.psu.edu/average-nutrient-composition-of-typical-high-quality-pastures-dry-matter-basis
+"University of Guelph, Dairy Science and Technology eBook, Minerals","milk Ca, Mg, K (table 19)",https://books.lib.uoguelph.ca/dairyscienceandtechnologyebook/chapter/minerals/
+"Gislason & Oelkers (2003) GCA 67, 3817-3832: rate law constants A = 10^-5.6 mol Si/cm2/s, Ea = 25.5 kJ/mol",glass rate law (table 13),

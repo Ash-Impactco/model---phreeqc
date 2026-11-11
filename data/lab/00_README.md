@@ -37,6 +37,7 @@ The same tables are in `Ilha_Carbon_ERW_Data.xlsx`, one sheet each.
 | 16_references.csv | Sources and links |
 | 17_isometric_accounting_terms.csv | Each Isometric EWA v1.3 term (Eq. 1, 2, 4), how the model estimates it, and what must be measured for credits |
 | 18_emission_factors.csv | Placeholder emission factors for haulage, spreading, milling (replace with real data) |
+| 19_plant_uptake_and_grazing.csv | Pasture yield, Ca, Mg, K in herbage and milk, and the share that leaves the field (to find) |
 
 ## Points to check
 - **Moreira and Terra da Riba potassium.** Two Notion tables disagree (K2O 1019 vs 286, and 806 vs 101 mg/kg). Check the original lab reports.

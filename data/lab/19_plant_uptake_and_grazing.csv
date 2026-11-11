@@ -1,0 +1,12 @@
+item,value,range,unit,status,source
+Pasture dry-matter yield,6,5-7,t DM/ha/yr,stand-in,"spontaneous pasture on São Miguel dairy farms, 2016-2017: Morais et al. (2018) Sustainability 10(10), 3658. Value read from a web-search summary of the paper, not from the paper itself: check before use"
+Ca in herbage,4.0,,g/kg DM,assumed,"typical cool-season grass, Penn State Extension, Average nutrient composition of typical high quality pastures. Not Azorean"
+Mg in herbage,2.0,,g/kg DM,assumed,"as above. Not Azorean"
+K in herbage,30.5,,g/kg DM,assumed,"as above. Not Azorean; K in grass rises with K supply"
+Share of herbage cations that leave the field,,0-1,fraction,TO FIND,"1 for cut-and-carry (silage or hay taken away). Much lower under grazing, where dung and urine return most cations. Blank means no removal by this route"
+Milk sold per hectare,,,L/ha/yr,TO FIND,"farm records. Used with the milk contents below for removal under grazing. Blank means no removal by this route"
+Ca in milk,1.2,1.1-1.3,g/L,assumed,"University of Guelph, Dairy Science and Technology eBook, minerals chapter. Not Azorean"
+Mg in milk,0.1,0.07-0.14,g/L,assumed,as above
+K in milk,1.3,1.1-1.5,g/L,assumed,as above
+Rooting depth for uptake,20,,cm,assumed,most pasture roots; adjust if a root survey is done
+Half-saturation of uptake as a share of the starting soil-water concentration,0.02,,fraction,assumed,"Michaelis-Menten supply limit: uptake stays near the stated removal until the soil water falls towards this level"

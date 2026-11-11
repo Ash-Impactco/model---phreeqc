@@ -110,6 +110,21 @@ with st.sidebar:
     cfg["log_pco2"] = st.slider("Soil log pCO2", -3.0, -1.0, float(cfg["log_pco2"]), 0.1)
     cfg["temp_c"] = st.slider("Soil temperature, °C", 10.0, 22.0, float(cfg["temp_c"]), 0.5)
 
+    with st.expander("Grass removal (plant uptake)", expanded=False):
+        gross = cfg.get("uptake_gross_kg_ha_yr") or {}
+        st.caption("Gross uptake by the grass (yield x content, table 19): "
+                   + ", ".join(f"{k} {v:.0f}" for k, v in gross.items()) + " kg/ha/yr. "
+                   "Only the part that leaves the field counts: all of it for silage or hay taken away, "
+                   "a small part under grazing. The share is not known yet, so it starts at zero.")
+        share0 = 0.0 if not any(cfg["uptake_kg_ha_yr"].values()) or not gross.get("K") else \
+            min(1.0, cfg["uptake_kg_ha_yr"]["K"] / gross["K"])
+        share = st.slider("Share of the grass cations that leave the field", 0.0, 1.0, float(share0), 0.05)
+        if abs(share - share0) > 1e-9:
+            cfg["uptake_share_removed"] = share
+            cfg["provenance"]["uptake_kg_ha_yr"] = dict(
+                cfg["provenance"]["uptake_kg_ha_yr"], status="assumed (edited in the app)",
+                value={k: round(share * v, 2) for k, v in gross.items()}, source="sidebar: share of gross uptake")
+
     st.subheader("Kinetics")
     cfg["field_factor"] = st.select_slider("Field-to-lab rate factor",
                                            with_value([0.01, 0.03, 0.1, 0.3, 1.0], cfg["field_factor"]),
