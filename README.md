@@ -85,7 +85,7 @@ Values such as `<0.05`, `2850-3000` and `~11` are understood. Leave unknown cell
 - **Column:** 0–50 cm in 10 cm cells, with basalt mixed into 0–20 cm. Steady drainage, fixed soil CO2 and O2. Gibbsite, kaolinite, amorphous silica, calcite and Fe(OH)3 can precipitate.
 - **Rock:** a cation-conserving norm from the oxides (plagioclase, K-feldspar, diopside, forsterite, fayalite, inert Fe-Ti oxides), plus optional basaltic glass. Measured XRD phases replace the norm when table 05 has them.
 - **Grain size:** 5 to 8 bins interpolated from the grading curve in table 03. The fraction finer than the smallest sieve (63 µm) is given an assumed diameter of 30 µm, which carries about two thirds of the surface area.
-- **Dissolution rates:** Palandri & Kharaka (2004), acid and neutral terms, Arrhenius-corrected. Area is geometric surface area × roughness × field factor, with shrinking-core loss. Glass follows an approximate Gislason & Oelkers (2003) rate.
+- **Dissolution rates:** Palandri & Kharaka (2004), acid and neutral terms, Arrhenius-corrected. Area is geometric surface area × roughness × field factor, with shrinking-core loss. Glass follows the Gislason & Oelkers (2003) rate law, r = A·exp(−Ea/RT)·(a_H⁺³/a_Al³⁺)^(1/3) per geometric area, so it slows down where dissolved Al is high.
 - **Exchange:** Gaines-Thomas. Three options for the soil's acidity:
   - *Large pool* (default): a proton pool sized as CEC at pH 7 minus the bases, calibrated to the measured base saturation.
   - *Small pool*: bases plus KCl-exchangeable acidity (effective CEC) only.
@@ -103,7 +103,7 @@ Every run reports an **Isometric accounting** tab, laid out like Equations 1, 2 
   - Under v1.3, credits must be quantified from **soil or porewater measurements** (List 1).
   - Reactive transport models are not yet accepted as a quantification approach. They can support the sorption time-lag term (guidance G-V660-0, with the model and its data provided), sampling design and the PDD.
   - Credits are issued at about the 30th percentile (40th with validation) of the measured distribution, so credited figures will be lower than this central forecast.
-- **What the forecast shows so far:** with stand-in data and placeholder emissions, the as-supplied 0/4 mm fines give a **net negative** result over 10 years (about −0.16 t CO2e/ha), because transport and spreading emissions exceed the small removal. Only the optimistic milled-and-glassy scenario is net positive (about +0.10 t/ha over 10 years).
+- **What the forecast shows so far:** with stand-in data and placeholder emissions, the as-supplied 0/4 mm fines give a **net negative** result over 10 years (about −0.16 t CO2e/ha), because transport and spreading emissions exceed the small removal. Only the optimistic milled-and-glassy scenario with the small acidity pool is net positive (about +0.5 t/ha over 10 years). The same scenario with the Andosol acidity model is net negative (about −0.6 t/ha), so the result turns on soil data that have not been measured yet.
 
 ## Groundwater step (MODFLOW 6 + PHREEQC)
 

@@ -10,9 +10,51 @@ model forecasts on stand-in data, in t CO2e per hectare. They are not creditable
 | 1 | Inputs read from `data/lab`; grain-size bins interpolated from table 03 | 0.1037 | 0.0029 | 0.0088 | −0.1630 |
 | 2.1 | Andosol acidity added as an option (base case unchanged) | 0.1037 | 0.0029 | 0.0088 | −0.1630 |
 | | *S1 with the Andosol option switched on (scenario S9)* | *0.1055* | *0.0029* | *0.0095* | *−0.1623* |
+| 2.2 | Glass: full Gislason & Oelkers (2003) rate law (S1 has no glass, so unchanged) | 0.1037 | 0.0029 | 0.0088 | −0.1630 |
 
 The Step 0 numbers stay reproducible with `python scripts/run_batch.py --source json`, and a test
 checks them on every run (`tests/reference/step0_results.csv`).
+
+## Step 2.2: basaltic glass, full Gislason & Oelkers (2003) rate law
+
+**What changed**
+
+Glass now dissolves at r = A · exp(−Ea/RT) · (a_H⁺³ / a_Al³⁺)^(1/3), with A = 10^−5.6 mol Si/cm²/s
+(10^−1.6 per m²) and Ea = 25.5 kJ/mol, per **geometric** surface area (Gislason & Oelkers 2003,
+Geochim. Cosmochim. Acta 67, 3817-3832; fitted by the authors for 6-300 °C and pH 1-11). The
+constants are in `13_model_rate_parameters.csv`; the choice of law is a row in
+`14_model_settings.csv` and a control in the app. The older constant rate is kept as the option
+`approximate`.
+
+- The roughness factor is **not** applied to glass under the full law, because the published
+  constant is already per geometric area. The field rate factor still applies.
+- The law is the far-from-equilibrium form. No chemical affinity term is included.
+- At the first moment of a run there is no dissolved Al, so the Al activity at saturation with the
+  soil's Al phase is used until dissolution supplies Al.
+
+**Effect on results** (10 years, t CO2e/ha, before → after)
+
+| Scenario | Released | Leaving the NFZ | Net removal |
+|---|---|---|---|
+| S1 to S4, S6, S9 (no glass) | unchanged | unchanged | unchanged |
+| S5 Base + 20 % glass | 0.2222 → 0.2205 | 0.0280 → 0.0280 | −0.1466 → −0.1466 |
+| S7 Optimistic, small pool | 2.1391 → 2.6602 | 0.9488 → 1.4619 | +0.0961 → +0.5322 |
+| S8 Upper bound | 4.4036 → 4.7725 | 3.1879 → 3.6242 | +1.9993 → +2.3701 |
+| S10 As S7, Andosol acidity | 2.2176 → 1.0603 | 0.2454 → 0.0989 | −0.5018 → −0.6263 |
+
+**What this shows**
+
+- Where gibbsite holds the dissolved Al (S5), the full law gives almost the same rate as the old
+  constant: with Al at gibbsite saturation the term (a_H⁺³/a_Al³⁺)^(1/3) does not depend on pH.
+- Glass dissolution now depends on **which secondary phase holds the Al**:
+  - In S7 and S8 the model lets kaolinite form, which pulls Al³⁺ to 6-15 times below gibbsite
+    saturation in the rock layer, so the glass dissolves about twice as fast.
+  - In S10, amorphous Al(OH)3 holds about 1000 times more Al³⁺ than gibbsite, so the glass
+    dissolves about 10 times more slowly, and 20 % glass becomes a penalty rather than a bonus.
+- Equilibrium precipitation of kaolinite within 10 years is an assumption of the model (allophane,
+  imogolite or halloysite are more likely in an Andosol). With the full glass law, that assumption
+  now matters for the rate as well as for the Si budget. A question for INOVA: which Al phase to
+  expect in these soils, and whether soil-water Al and Si can be measured.
 
 ## Step 2.1: Andosol acidity (exchangeable Al plus pH-dependent charge)
 

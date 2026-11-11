@@ -14,7 +14,7 @@ import pytest
 
 from conftest import append_rows
 from erw import data_io
-from erw.model import (andosol_pool, co2_potential, default_config, exchange_pool, implied_oxides,
+from erw.model import (andosol_pool, build_setup, co2_potential, default_config, exchange_pool, implied_oxides,
                        mineral_assemblage, normative_minerals, run, full_input)
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -206,3 +206,39 @@ def test_andosol_run_starts_at_the_measured_exchange_state_and_buffers():
     assert "Al(OH)3(a)" in text and "HXv" in text and "AlX3" in text and "Al13O4(OH)24+7" in text
     cfg["al_phase"] = "gibbsite"
     assert "Al13O4(OH)24+7" not in full_input(cfg, rock=True)             # llnl.dat left untouched for gibbsite
+
+
+# ---------------------------------------------------------------- glass: Gislason & Oelkers (2003)
+def glass_cfg(**kw):
+    cfg = default_config()
+    cfg.update(glass_frac=0.5, years=1)
+    cfg.update(kw)
+    return cfg
+
+
+def test_glass_rate_law_constants_and_area():
+    cfg = glass_cfg()
+    assert cfg["glass_rate_law"] == "gislason_oelkers_2003"
+    assert cfg["glass_go"] == dict(log_a=-1.6, ea=25.5)                   # 10^-5.6 mol Si/cm2/s = 10^-1.6 /m2/s
+    assert cfg["provenance"]["glass_go"]["status"] == "assumed"
+    text, _ = build_setup(cfg, rock=True)
+    block = text[text.index("Gls_0"):text.index("-end", text.index("Gls_0"))]
+    assert "10^(-1.6) * exp(-25.5/(R*TK))" in block
+    assert '(act("H+")^3/aal)^(1/3)' in block and 'LK_PHASE("Gibbsite")' in block
+    rougher = glass_cfg(roughness=20.0)
+    text2, _ = build_setup(rougher, rock=True)
+    block2 = text2[text2.index("Gls_0"):text2.index("-end", text2.index("Gls_0"))]
+    assert block == block2                                                # per geometric area: no roughness factor
+    old, _ = build_setup(glass_cfg(glass_rate_law="approximate"), rock=True)
+    assert "aal" not in old
+
+
+def test_glass_law_matches_the_old_rate_with_gibbsite_and_slows_with_amorphous_al():
+    released = lambda cfg: run(cfg)["hist"]["released_t"][-1]
+    full = released(glass_cfg())                                          # Al held by gibbsite (large pool)
+    approx = released(glass_cfg(glass_rate_law="approximate"))
+    assert full == pytest.approx(approx, rel=0.15)
+    # amorphous Al(OH)3 holds about 1000 times more Al3+ in solution: the law gives a rate about 10 times lower
+    slow = released(glass_cfg(acidity_mode="andosol", al_phase="amorphous"))
+    fast = released(glass_cfg(acidity_mode="andosol", al_phase="gibbsite"))
+    assert slow < 0.5 * fast

@@ -19,3 +19,4 @@ eta RiverOcean,0.85,,assumed,placeholder (see 17)
 Aluminium phase controlling soil-water Al,amorphous,,assumed,"Andosol acidity option only: amorphous Al(OH)3 (log K 10.8) or gibbsite (llnl.dat). Amorphous fits the database Al exchange constant better for the Sanguinho soils"
 Half-point pH of the variable charge,,pH,assumed,Andosol acidity option only: blank means midway between the soil pH and 7
 Reactive Al hydroxide in the soil,1.0,mol per kg soil water,assumed,Andosol acidity option only: large enough not to run out; compare with oxalate-extractable Al when measured
+Glass rate law,Gislason & Oelkers 2003,,assumed,"full law with Al3+ dependence, per geometric area (no roughness factor). The other option, approximate, is the older constant rate with the roughness factor"

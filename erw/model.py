@@ -36,6 +36,9 @@ DB = (DATA / "llnl.dat").read_text()
 
 MW = dict(SiO2=60.08, Al2O3=101.96, Fe2O3=159.69, CaO=56.08, MgO=40.30, TiO2=79.87, Na2O=61.98, K2O=94.20)
 GLASS_FORMULA = ("Si1Al0.349Fe0.165Ca0.227Mg0.2175Na0.1378K0.0538O3.229", 118.05, 1.0806)
+# Gislason & Oelkers (2003) Geochim. Cosmochim. Acta 67, 3817-3832: A = 10^-5.6 mol Si/cm2/s = 10^-1.6 mol Si/m2/s,
+# Ea = 25.5 kJ/mol, per geometric surface area. Used only if data/lab/13 has no values.
+GLASS_GO2003 = dict(log_a=-1.6, ea=25.5)
 
 
 def default_config(soil="A_Moreira", psd="as_is_0-4mm", rock=None, source="lab"):
@@ -492,8 +495,29 @@ EQUILIBRIUM_PHASES 1-{ncells}
                 if g <= 0:
                     continue
                 mol = g / mw
-                area = g * 6.0 / (cfg.get("density_g_m3", INPUTS["feedstock"]["density_g_m3"]) * d) * cfg["roughness"]
+                geo_area = g * 6.0 / (cfg.get("density_g_m3", INPUTS["feedstock"]["density_g_m3"]) * d)
+                area = geo_area * cfg["roughness"]
                 rn = f"{name}_{b}"
+                if name == "Gls" and cfg.get("glass_rate_law", "approximate") == "gislason_oelkers_2003":
+                    go = cfg.get("glass_go") or GLASS_GO2003
+                    al_phase = AL_PHASES[cfg.get("al_phase", "amorphous")][0] if cfg["acidity_mode"] == "andosol" else "Gibbsite"
+                    rates.append(f"""{rn}
+  -start
+  # Gislason & Oelkers (2003): r = A exp(-Ea/RT) (aH^3/aAl)^(1/3), mol Si per m2 of geometric surface per s
+  10 if (m <= 0) then goto 200
+  20 R = 8.314e-3
+  30 aal = act("Al+3")
+  # no dissolved Al yet (first moment of the run): use the activity at saturation with the soil's Al phase
+  40 if (aal < 1e-30) then aal = 10^(LK_PHASE("{al_phase}") + 3*LA("H+"))
+  50 k = 10^({go['log_a']}) * exp(-{go['ea']}/(R*TK))
+  60 rate = k * (act("H+")^3/aal)^(1/3) * {geo_area:.6e} * (m/m0)^0.67 * {cfg['field_factor']}
+  70 moles = rate * time
+  80 if (moles > m) then moles = m
+  200 save moles
+  -end""")
+                    kin.append(f"  {rn}\n    -formula {formula} 1\n    -m0 {mol:.6e}\n    -m {mol:.6e}")
+                    terms.append(f'KIN("{rn}")*{chg}')
+                    continue
                 rates.append(f"""{rn}
   -start
   10 if (m <= 0) then goto 200

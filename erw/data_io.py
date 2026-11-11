@@ -596,6 +596,12 @@ def lab_defaults(lab_dir=LAB):
     prov["acidity_mode"] = _prov(d["acidity_mode"], status_class(row["status"]) if row is not None else "assumed",
                                  f"{tables['14'].attrs['file']}: Soil acidity pool" if row is not None
                                  else "fallback data/inputs.json", "")
+    row = _find_row(tables["14"], "setting", "Glass rate law")
+    txt = (row["value"] if row is not None else "").lower()
+    d["glass_rate_law"] = "gislason_oelkers_2003" if "gislason" in txt else "approximate"
+    prov["glass_rate_law"] = _prov(d["glass_rate_law"], status_class(row["status"]) if row is not None else "assumed",
+                                   f"{tables['14'].attrs['file']}: Glass rate law" if row is not None
+                                   else "no row in table 14: older approximate rate", "")
     row = _find_row(tables["14"], "setting", "Aluminium phase controlling soil-water Al")
     txt = (row["value"] if row is not None else "").lower()
     d["al_phase"] = "gibbsite" if txt.startswith("gibbsite") else "amorphous"
@@ -624,7 +630,7 @@ def rate_parameters(lab_dir=LAB):
     A mineral with no acid term in the table (basaltic glass) gets a switched-off acid term."""
     df = read_table("13", lab_dir)
     fb = _fallback_inputs()["rates_palandri_kharaka_2004"]
-    rates, prov = {}, {}
+    rates, prov, glass_go = {}, {}, None
     for _, r in df.iterrows():
         name = r["mineral"].lower()
         key = next((k for frag, k in _RATE_KEYS if frag in name), None)
@@ -638,12 +644,21 @@ def rate_parameters(lab_dir=LAB):
             vals[:3] = [-99.0, 0.0, 0.0]
         rates[key] = vals
         status = r["status"] if "status" in df.columns and r["status"] else "assumed"
+        if key == "Gls":
+            la, ea = num(r.get("logA_GO2003_mol_Si_m2_s")), num(r.get("Ea_GO2003_kJ_mol"))
+            if la is not None and ea is not None:
+                glass_go = dict(log_a=la, ea=ea)
+                prov["glass_go"] = _prov(glass_go, status_class(status),
+                                         f"{df.attrs['file']}: Basaltic glass, Gislason & Oelkers (2003) constants",
+                                         "log mol Si/m2/s, kJ/mol")
         prov[f"rates.{key}"] = _prov(vals, status_class(status), f"{df.attrs['file']}: {r['mineral']} ({r['source']})",
                                      "log mol/m2/s, kJ/mol")
     for key, vals in fb.items():
         if not key.startswith("_") and key not in rates:
             rates[key] = vals
             prov[f"rates.{key}"] = _prov(vals, "assumed", "fallback data/inputs.json", "")
+    if glass_go:
+        rates["_glass_go"] = glass_go            # taken out again by build_config
     return rates, prov
 
 
@@ -684,6 +699,9 @@ def build_config(soil: str = DEFAULT_SOIL, psd: str = AS_IS_PSD, rock: str = DEF
     cfg = dict(d)
     cfg["isometric"] = iso
     cfg["emissions"] = emis
+    glass_go = rates.pop("_glass_go", None)
+    if glass_go:
+        cfg["glass_go"] = glass_go
     cfg["rates"] = rates
     cfg["data_source"] = "data/lab"
 

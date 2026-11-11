@@ -93,6 +93,12 @@ with st.sidebar:
         else:
             cfg["glass_frac"] = st.slider("Basaltic glass fraction", 0.0, 0.6, float(cfg["glass_frac"]), 0.05,
                                           help="Unknown until XRD with amorphous quantification")
+        laws = ["gislason_oelkers_2003", "approximate"]
+        cfg["glass_rate_law"] = st.selectbox(
+            "Glass rate law", laws, index=laws.index(cfg["glass_rate_law"]),
+            format_func=lambda k: {"gislason_oelkers_2003": "Gislason & Oelkers (2003), with Al3+ dependence",
+                                   "approximate": "Older approximation (constant rate)"}[k],
+            help="The full law slows down when dissolved Al is high, as it is where amorphous Al(OH)3 holds the Al")
 
     st.subheader("Field")
     cfg["application_t_ha"] = st.slider("Application rate, t/ha", 5, 100, int(cfg["application_t_ha"]), 5)
@@ -114,7 +120,7 @@ with st.sidebar:
 
 # Anything changed by hand in the sidebar is no longer the lab value: say so in the provenance.
 EDITED = "assumed (edited in the app)"
-for key in ("acidity_mode", "al_phase", "effective_acidity_cmol_kg", "bulk_density_kg_m3", "glass_frac", "application_t_ha",
+for key in ("acidity_mode", "al_phase", "glass_rate_law", "effective_acidity_cmol_kg", "bulk_density_kg_m3", "glass_frac", "application_t_ha",
             "drainage_mm_yr", "log_pco2", "temp_c", "field_factor", "roughness", "years"):
     if cfg[key] != base[key] and not (isinstance(cfg[key], (int, float)) and abs(cfg[key] - base[key]) < 1e-9):
         cfg["provenance"][key] = dict(cfg["provenance"].get(key, {}), value=cfg[key], status=EDITED,
