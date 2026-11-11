@@ -8,3 +8,4 @@ flopy>=3.9
 modflowapi
 phreeqcrm
 mf6rtm>=0.6
+pytest>=8

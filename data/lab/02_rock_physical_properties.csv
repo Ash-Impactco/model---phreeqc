@@ -14,3 +14,4 @@ MB-BRITA2,Chloride,<0.01,%,measured,DOP
 MB-BRITA2,Alkali-silica reactivity,non-reactive,,measured,DOP
 TV-FINES-01,Moisture content,,%,TO MEASURE,
 TV-FINES-01,Bulk (loose) density,,t/m3,TO MEASURE,needed for truck loads
+MB-BRITA2,Particle density used in model,2900,kg/m3,assumed,"not measured on the fines; chosen within the 2850-3000 range reported for the olivine basalt block (MB-BLOCK-OL)"

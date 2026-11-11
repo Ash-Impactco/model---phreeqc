@@ -5,3 +5,8 @@ MB-BRITA2,250,25,assumed,model bin,assumed split used in model
 MB-BRITA2,1000,50,assumed,model bin,
 MB-BRITA2,2000,75,assumed,model bin,
 TV-FINES-01,,,TO MEASURE,laser diffraction (fine end) + sieve,"report d10, d50, d80, d90"
+MILL-P80-1MM,63,25,assumed,assumed milling outcome,"scenario grading curve, not a milling trial; P80 = 1 mm"
+MILL-P80-1MM,250,50,assumed,assumed milling outcome,
+MILL-P80-1MM,2500,100,assumed,assumed milling outcome,top size chosen so that P80 = 1 mm
+MILL-P80-100UM,63,50,assumed,assumed milling outcome,"scenario grading curve, not a milling trial; P80 = 100 um"
+MILL-P80-100UM,136,100,assumed,assumed milling outcome,top size chosen so that P80 = 100 um

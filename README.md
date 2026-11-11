@@ -2,7 +2,9 @@
 
 An interactive enhanced rock weathering (ERW) model. You change the rock, soil and field settings, press **Run PHREEQC**, and the charts update year by year while PHREEQC runs. A 10-year run takes about 15–20 seconds.
 
-**This is a scenario model, not a validated prediction.** The rock data comes from Marques Britas fines and the soil data from two Sanguinho pastures. Both are stand-ins until TECHNOVIA's rock analysis and the Lomba da Maia screening are in. The mineralogy is estimated from bulk chemistry, because there is no XRD yet.
+**This is a scenario model, not a validated prediction.** The rock data comes from Marques Britas fines and the soil data from Sanguinho. Both are stand-ins until TECHNOVIA's rock analysis and the Lomba da Maia screening are in. The mineralogy is estimated from bulk chemistry, because there is no XRD yet.
+
+Every input is read from the lab files in `data/lab/` and keeps its status: **measured**, **stand-in** (a real value from another rock or site), **assumed**, or **to measure**. The app shows the status of every input of a run.
 
 ## What is in here
 
@@ -10,9 +12,14 @@ An interactive enhanced rock weathering (ERW) model. You change the rock, soil a
 |---|---|
 | `app.py` | The live app (Streamlit + Plotly) |
 | `erw/model.py` | The PHREEQC model: mineral norm, kinetics, exchange, transport, results |
-| `data/inputs.json` | **All input data**: rock oxides, grain size, soils, rate constants, defaults, references |
+| `data/lab/` | **All input data**: 18 CSVs (rock, soil, site, climate, model settings, Isometric terms, emission factors), each row with a status. The Excel file is a copy and may lag behind the CSVs |
+| `erw/data_io.py` | Reads `data/lab/` and builds the model inputs, with the status and source of each |
+| `erw/validate.py` | Checks the lab files and writes `outputs/validation.md` |
+| `erw/samples.py`, `scripts/run_samples.py` | One model run per soil composite, in parallel, plus a site-mean run |
+| `data/inputs.json` | The original inputs. Now only a fallback for values the lab files do not hold, and the frozen Step 0 reference |
 | `data/scenarios.json` | Scenarios for the batch run |
-| `data/lab/` | **All project data**: 18 CSVs (rock, soil, site, climate, model, Isometric terms, emission factors) plus the same in one Excel file |
+| `tests/` | Automated checks (`python -m pytest`) |
+| `docs/changelog.md` | Every change and its effect on the base-case numbers |
 | `data/llnl.dat` | PHREEQC thermodynamic database (USGS, public domain) |
 | `scripts/run_batch.py` | Runs every scenario and writes `outputs/results.csv`, `outputs/scenarios.png` and `.pqi` files |
 | `.github/workflows/run-scenarios.yml` | Runs the batch on GitHub and lets you download the results |
@@ -56,15 +63,28 @@ Always use **llnl.dat**. phreeqc.dat does not contain the basalt silicates.
 
 ## Updating the data
 
-Edit `data/inputs.json` when the real results arrive:
-- **TECHNOVIA rock:** `feedstock.oxides_wt_pct`, plus `grain_size_bins` from the laser PSD
-- **Lomba da Maia soil:** add a new entry under `soils` (pH, CEC, exchangeable Ca, Mg, K)
-- **XRD / glass:** once measured, set the glass fraction in the app, or extend the model to take mineral fractions directly (see `FABLE_PROMPT.md`)
+The model reads `data/lab/*.csv` directly. To add results, edit the CSV (in VS Code or a spreadsheet, saved as CSV), then check and run:
+
+```
+python -m erw.validate          # writes outputs/validation.md and prints anything to check
+python -m pytest                # about 40 seconds
+python scripts/run_batch.py     # all scenarios; add --update-lab to refresh table 15
+```
+
+- **TECHNOVIA rock:** fill the `TV-FINES-01` row in `01_rock_major_oxides.csv` and set its status to `measured`. Once all eight major oxides are there, the sample can be chosen in the app. If FeO is given, the Fe2O3 column is read as ferric iron only; if FeO is blank, Fe2O3 is total iron and the Fe2+ share comes from the settings.
+- **Density:** add a particle density row for the sample in `02_rock_physical_properties.csv` (not the loose bulk density).
+- **Grain size:** add the PSD points for the sample to `03_rock_grain_size.csv` (size in µm, cumulative % passing, ending at 100 %). The model builds 5 to 8 bins from them by interpolation. Many points (a laser PSD) are fine.
+- **Mineralogy:** add the XRD phases for the sample to `05_rock_mineralogy.csv` with status `measured`. The model then uses them in place of the norm, and the app says which is in use. Write the plagioclase and olivine compositions in the phase name if known, for example `Plagioclase (An55)` and `Olivine (Fo80)`.
+- **Lomba da Maia soil:** fill the rows in `09_soil_lomba_da_maia_screening.csv` and set the status to `measured`. A row can be run once it has pH, CEC at pH 7 and exchangeable Ca, Mg and K (cmol(+)/kg). Exchangeable Na, acidity at pH 7, KCl acidity (`exch_Al_KCl`), ECEC and bulk density are used when present. Then `python scripts/run_samples.py` runs every composite and the site mean.
+- **Settings, climate, rates, emission factors:** edit the value in tables 11, 12, 13, 14 or 18 and keep the status honest.
+
+Values such as `<0.05`, `2850-3000` and `~11` are understood. Leave unknown cells empty: the model never fills them in. `data/inputs.json` is used only where a lab file has no value, and the run says so. `python scripts/run_batch.py --source json` still reproduces the original numbers.
 
 ## How the model works
 
 - **Column:** 0–50 cm in 10 cm cells, with basalt mixed into 0–20 cm. Steady drainage, fixed soil CO2 and O2. Gibbsite, kaolinite, amorphous silica, calcite and Fe(OH)3 can precipitate.
-- **Rock:** a cation-conserving norm from the oxides (plagioclase, K-feldspar, diopside, forsterite, fayalite, inert Fe-Ti oxides), plus optional basaltic glass.
+- **Rock:** a cation-conserving norm from the oxides (plagioclase, K-feldspar, diopside, forsterite, fayalite, inert Fe-Ti oxides), plus optional basaltic glass. Measured XRD phases replace the norm when table 05 has them.
+- **Grain size:** 5 to 8 bins interpolated from the grading curve in table 03. The fraction finer than the smallest sieve (63 µm) is given an assumed diameter of 30 µm, which carries about two thirds of the surface area.
 - **Dissolution rates:** Palandri & Kharaka (2004), acid and neutral terms, Arrhenius-corrected. Area is geometric surface area × roughness × field factor, with shrinking-core loss. Glass follows an approximate Gislason & Oelkers (2003) rate.
 - **Exchange:** Gaines-Thomas. The soil's acidity is a proton pool calibrated to the measured base saturation, either the "CEC at pH 7" version or a small "effective CEC" version.
 - **CO2 removed:** extra alkalinity leaving the column base, compared with an identical no-rock column. Cations still held on exchange sites are reported separately and not counted.
@@ -80,7 +100,7 @@ Every run reports an **Isometric accounting** tab, laid out like Equations 1, 2 
   - Under v1.3, credits must be quantified from **soil or porewater measurements** (List 1).
   - Reactive transport models are not yet accepted as a quantification approach. They can support the sorption time-lag term (guidance G-V660-0, with the model and its data provided), sampling design and the PDD.
   - Credits are issued at about the 30th percentile (40th with validation) of the measured distribution, so credited figures will be lower than this central forecast.
-- **What the forecast shows so far:** with stand-in data and placeholder emissions, the as-supplied 0/4 mm fines give a **net negative** result over 10 years (about −0.16 t CO2e/ha), because transport and spreading emissions exceed the small removal. Only the optimistic milled-and-glassy scenario is net positive (about +0.07 t/ha over 10 years).
+- **What the forecast shows so far:** with stand-in data and placeholder emissions, the as-supplied 0/4 mm fines give a **net negative** result over 10 years (about −0.16 t CO2e/ha), because transport and spreading emissions exceed the small removal. Only the optimistic milled-and-glassy scenario is net positive (about +0.10 t/ha over 10 years).
 
 ## Groundwater step (MODFLOW 6 + PHREEQC)
 
@@ -89,7 +109,7 @@ The soil model gives the chemistry of water draining below the root zone. The gr
 - **Set-up:** a one-layer flow line from the upslope edge of the field to a stream. Recharge equals the soil drainage. Field cells receive basalt-amended drainage; the rest receive control drainage. It runs as a pair: rock and control.
 - **All hydrogeology is ASSUMED:** distance to stream 1,500 m, flow path under the field 600 m, thickness 20 m, hydraulic conductivity 10 m/day, porosity 0.15, background groundwater chemistry. Replace these with Azorean data, for example from the regional water authority (DROTRH) or published hydrogeology of São Miguel.
 - **Simplification:** the final soil year's drainage is applied as constant recharge.
-- **What it tells you so far:** in the optimistic soil scenario, about 96% of the extra alkalinity reaches the stream, after accounting for dilution by recharge outside the field, with no calcite loss. In the base case the signal (about 1 µeq/L) is too small to resolve.
+- **What it tells you so far:** in the optimistic soil scenario, about 95% of the extra alkalinity reaches the stream, after accounting for dilution by recharge outside the field, with no calcite loss. In the base case the signal (about 1 µeq/L) is too small to resolve.
 - **In the app:** after a soil run, use the "Groundwater step" section. **In batch:** `python scripts/run_groundwater.py`.
 
 ## Main limitations

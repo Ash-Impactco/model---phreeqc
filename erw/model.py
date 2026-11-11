@@ -11,12 +11,23 @@ CO2 removal = extra alkalinity (rock column minus identical no-rock control) lea
 
 run_stream(cfg) is a generator: it advances both columns one year at a time and yields results,
 so a front end can update charts live while PHREEQC is running.
+
+Inputs come from the lab data pack (data/lab/*.csv, read by erw/data_io.py), and every input carries
+its status (measured, stand-in, assumed). data/inputs.json is kept only as a fallback and as the
+frozen Step 0 reference: default_config(..., source="json") reproduces the original model exactly.
 """
 from __future__ import annotations
 import json, math, copy
 from pathlib import Path
 import numpy as np
 import phreeqpython
+
+try:
+    from . import data_io
+except ImportError:                      # run directly as a script: python erw/model.py
+    import sys
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from erw import data_io
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
@@ -27,7 +38,22 @@ MW = dict(SiO2=60.08, Al2O3=101.96, Fe2O3=159.69, CaO=56.08, MgO=40.30, TiO2=79.
 GLASS_FORMULA = ("Si1Al0.349Fe0.165Ca0.227Mg0.2175Na0.1378K0.0538O3.229", 118.05, 1.0806)
 
 
-def default_config(soil="A_Moreira", psd="as_is_0-4mm"):
+def default_config(soil="A_Moreira", psd="as_is_0-4mm", rock=None, source="lab"):
+    """Model configuration for one scenario.
+
+    source="lab"   (default) read everything from data/lab/*.csv, with provenance for each input.
+                   `soil` is a sample id from tables 08/09, `rock` a sample id from table 01
+                   (default MB-BRITA2), `psd` "as_is_0-4mm" or a grading-curve id from table 03.
+                   The old names (A_Moreira, B_TerraRiba, milled_p80_1mm, milled_p80_100um) still work.
+    source="json"  the original inputs from data/inputs.json (frozen reference).
+    """
+    if source == "json":
+        return legacy_config(soil, psd)
+    return data_io.build_config(soil, psd, rock or data_io.DEFAULT_ROCK)
+
+
+def legacy_config(soil="A_Moreira", psd="as_is_0-4mm"):
+    """The original configuration from data/inputs.json, kept as a fallback and for regression tests."""
     d = copy.deepcopy(INPUTS["defaults"])
     d["isometric"] = copy.deepcopy(INPUTS.get("isometric", {}))
     d["emissions"] = copy.deepcopy(INPUTS.get("emissions", {}))
@@ -109,9 +135,100 @@ def _geometry(cfg):
     return ncells, rock_cells, water, soil_per_kgw, rock_g_kgw, shift_s, shifts_per_year
 
 
+def mineral_assemblage(cfg):
+    """The minerals the model dissolves, in g per 100 g of rock.
+
+    Returns (grams, minerals, xan, source). `grams` has the keys Plag, Kfs, Cpx, Fo, Fa, Gls, Inert.
+    If cfg["mineralogy"] holds measured phases (XRD, from data/lab/05), those are used; otherwise
+    the norm calculated from the oxides, with the assumed glass fraction taken out of the reactive
+    minerals. `source` says which, so the front end can show it.
+    """
+    g_norm, minerals, xan = normative_minerals(cfg["oxides"], cfg["fe2_fraction"])
+    xrd = cfg.get("mineralogy")
+    if not xrd:
+        gf = cfg["glass_frac"]
+        react = sum(v for k, v in g_norm.items() if k != "Inert")
+        g = {k: (v if k == "Inert" else v * (1 - gf)) for k, v in g_norm.items()}
+        g["Gls"] = react * gf
+        src = "normative estimate from the oxides (assumed; no measured XRD)"
+        return g, minerals, xan, src + (f", with {gf:.0%} glass assumed" if gf else "")
+    ph = dict(xrd["phases"])
+    notes = []
+    an = xrd.get("plag_an")
+    if an is None:
+        an = xan
+        notes.append(f"plagioclase composition not reported, An{xan*100:.0f} taken from the norm")
+    loose = xrd.get("olivine_unsplit_wt_pct", 0.0)
+    if loose:
+        ol = g_norm["Fo"] + g_norm["Fa"]
+        share = g_norm["Fo"] / ol if ol else 1.0
+        ph["Fo"] += loose * share
+        ph["Fa"] += loose * (1 - share)
+        notes.append("olivine composition not reported, split as in the norm")
+    total = sum(ph.values())
+    g = {k: v * 100.0 / total for k, v in ph.items()}
+    mw_plag = 262.2 * (1 - an) + 278.2 * an
+    minerals = dict(minerals)
+    minerals["Plag"] = (f"Na{1-an:.3f}Ca{an:.3f}Al{1+an:.3f}Si{3-an:.3f}O8", mw_plag, (1 - an) + 2 * an)
+    src = "measured phases (XRD), data/lab/05_rock_mineralogy.csv"
+    return g, minerals, an, src + ("; " + "; ".join(notes) if notes else "")
+
+
+def implied_oxides(cfg):
+    """CaO, MgO, Na2O and K2O (wt %) carried by the dissolving minerals, to compare with the bulk
+    analysis. With the norm they match by construction; with measured XRD the gap shows how well
+    the idealised mineral formulas account for the rock chemistry."""
+    g, minerals, _, _ = mineral_assemblage(cfg)
+    f, mwg, _ = GLASS_FORMULA
+    plag_f, mw_plag, _ = minerals["Plag"]
+    an = float(plag_f.split("Ca")[1].split("Al")[0])
+    mol = dict(Ca=g["Plag"] / mw_plag * an + g["Cpx"] / 216.55 + g["Gls"] / mwg * 0.227,
+               Mg=g["Cpx"] / 216.55 + 2 * g["Fo"] / 140.69 + g["Gls"] / mwg * 0.2175,
+               Na=g["Plag"] / mw_plag * (1 - an) + g["Gls"] / mwg * 0.1378,
+               K=g["Kfs"] / 278.3 + g["Gls"] / mwg * 0.0538)
+    return dict(CaO=mol["Ca"] * MW["CaO"], MgO=mol["Mg"] * MW["MgO"], Na2O=mol["Na"] / 2 * MW["Na2O"],
+                K2O=mol["K"] / 2 * MW["K2O"])
+
+
+def exchange_pool(cfg):
+    """Size of the exchanger (cmol(+)/kg) and the equivalent fractions on it at the start.
+
+    Two pool options:
+      "pH7_CEC"    large pool: bases + exchange acidity at pH 7. Uses the measured acidity where the
+                   lab reported it, otherwise CEC at pH 7 minus the bases.
+      "effective"  small pool: bases + KCl-exchangeable acidity (measured if available, otherwise the
+                   assumed value in the model settings).
+    Exchangeable Na is used where measured; otherwise an assumed small share of the CEC.
+    """
+    s = cfg["soil"]
+    na = s.get("na")
+    bases = s["ca"] + s["mg"] + s["k"] + (na or 0.0)
+    if cfg["acidity_mode"] == "effective":
+        cec = bases + cfg["effective_acidity_cmol_kg"]
+    elif "acidity_pH7" in s:
+        cec = bases + s["acidity_pH7"]
+    else:
+        cec = s["cec"]
+    beta = dict(Ca=s["ca"] / cec, Mg=s["mg"] / cec, K=s["k"] / cec,
+                Na=(na / cec) if na is not None else cfg.get("na_fraction_default", 0.01))
+    beta["H"] = 1 - sum(beta.values())
+    if beta["H"] <= 0 or min(beta.values()) <= 0:
+        raise ValueError(f"Soil {s.get('sample_id', '')}: the exchange pool cannot be set up "
+                         f"(fractions {beta}). Check CEC, exchangeable cations and the acidity pool.")
+    return cec, beta
+
+
 def reactants(cfg):
-    g100, minerals, xan = normative_minerals(cfg["oxides"], cfg["fe2_fraction"])
     _, _, _, _, rock_g_kgw, _, _ = _geometry(cfg)
+    if cfg.get("mineralogy"):
+        g, minerals, _, _ = mineral_assemblage(cfg)
+        out = [(k, formula, mw, chg, g[k] / 100 * rock_g_kgw, cfg["rates"][k])
+               for k, (formula, mw, chg) in minerals.items()]
+        if g["Gls"] > 0:
+            f, mw, chg = GLASS_FORMULA
+            out.append(("Gls", f, mw, chg, g["Gls"] / 100 * rock_g_kgw, cfg["rates"]["Gls"]))
+        return out
+    g100, minerals, xan = normative_minerals(cfg["oxides"], cfg["fe2_fraction"])
     gf = cfg["glass_frac"]
     react_g100 = sum(v for k, v in g100.items() if k != "Inert")
     out = []
@@ -126,10 +243,7 @@ def reactants(cfg):
 def build_setup(cfg, rock=True):
     s = dict(cfg["soil"])
     ncells, rock_cells, water, soil_per_kgw, rock_g_kgw, shift_s, _ = _geometry(cfg)
-    if cfg["acidity_mode"] == "effective":
-        s["cec"] = s["ca"] + s["mg"] + s["k"] + cfg["effective_acidity_cmol_kg"]
-    beta = dict(Ca=s["ca"] / s["cec"], Mg=s["mg"] / s["cec"], K=s["k"] / s["cec"], Na=0.01)
-    beta["H"] = 1 - sum(beta.values())
+    s["cec"], beta = exchange_pool(cfg)
     LOGK = dict(K=0.7, Na=0.0, Ca=0.8, Mg=0.6)
     aH = 10 ** (-s["pH"]); ca_m = cfg["soil_solution_ca_mol"]
     y = math.sqrt(beta["Ca"] / (10 ** LOGK["Ca"] * ca_m))
@@ -176,7 +290,7 @@ EQUILIBRIUM_PHASES 1-{ncells}
                 if g <= 0:
                     continue
                 mol = g / mw
-                area = g * 6.0 / (INPUTS["feedstock"]["density_g_m3"] * d) * cfg["roughness"]
+                area = g * 6.0 / (cfg.get("density_g_m3", INPUTS["feedstock"]["density_g_m3"]) * d) * cfg["roughness"]
                 rn = f"{name}_{b}"
                 rates.append(f"""{rn}
   -start

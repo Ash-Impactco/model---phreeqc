@@ -8,7 +8,8 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from erw.model import (INPUTS, default_config, run_stream, co2_potential, normative_minerals, full_input)
+from erw.model import (default_config, run_stream, co2_potential, mineral_assemblage, full_input)
+from erw import data_io
 
 st.set_page_config(page_title="Ilha Carbon ERW model", layout="wide")
 
@@ -17,69 +18,123 @@ PALETTE = ["#2F7D6B", "#C9733A", "#3B6EA8", "#B23A48", "#6B5CA5", "#8A918D"]
 
 st.markdown("## Basalt weathering on Azorean pasture: live PHREEQC model")
 st.caption("Scenario model for discussion, not a validated prediction. Rock and soil values are stand-ins until "
-           "TECHNOVIA's rock analysis and the Lomba da Maia soil screening are available. Database: llnl.dat.")
+           "TECHNOVIA's rock analysis and the Lomba da Maia soil screening are available. Inputs are read from "
+           "the lab files in data/lab, each with its status. Database: llnl.dat.")
 
 if "runs" not in st.session_state:
     st.session_state.runs = {}
 
 # ------------------------------------------------------------------ sidebar inputs
+PSD_LABELS = {"as_is_0-4mm": "0/4 mm fines as supplied", "milled_p80_1mm": "Milled, P80 1 mm (assumed curve)",
+              "milled_p80_100um": "Milled, P80 100 µm (assumed curve)"}
+
+
+def with_value(options, value):
+    """A slider's option list, with the lab value added if it is not one of the usual steps."""
+    return sorted(set(options) | {value})
+
+
 with st.sidebar:
     st.header("Scenario")
-    soil_key = st.selectbox("Soil", list(INPUTS["soils"]), format_func=lambda k: INPUTS["soils"][k]["label"])
-    psd_key = st.selectbox("Grain size", list(INPUTS["grain_size_bins"]),
-                           format_func=lambda k: {"as_is_0-4mm": "0/4 mm fines as supplied",
-                                                  "milled_p80_1mm": "Milled, p80 1 mm",
-                                                  "milled_p80_100um": "Milled, p80 100 µm"}[k])
-    cfg = default_config(soil_key, psd_key)
+    rocks = data_io.rock_samples()
+    usable_rocks = [k for k, v in rocks.items() if v["usable"]]
+    rock_key = st.selectbox("Rock (table 01)", usable_rocks,
+                            index=usable_rocks.index(data_io.DEFAULT_ROCK) if data_io.DEFAULT_ROCK in usable_rocks else 0,
+                            format_func=lambda k: f"{rocks[k]['label']} [{rocks[k]['status_class']}]")
+    waiting = [k for k, v in rocks.items() if not v["usable"]]
+    if waiting:
+        st.caption(f"Waiting for results: {', '.join(waiting)}. They can be chosen once the oxides are filled in.")
+    all_soils = data_io.soils()
+    soil_key = st.selectbox("Soil (tables 08 and 09)", list(all_soils),
+                            format_func=lambda k: f"{all_soils[k]['label']} [{all_soils[k]['status_class']}]")
+    extra_curves = [c for c in data_io.psd_ids() if c not in rocks and c not in data_io.PSD_ALIASES.values()]
+    psd_key = st.selectbox("Grain size (table 03)", list(PSD_LABELS) + extra_curves,
+                           format_func=lambda k: PSD_LABELS.get(k, k))
+    cfg = default_config(soil_key, psd_key, rock_key)
+    base = copy.deepcopy(cfg)
 
     with st.expander("Soil chemistry (0-20 cm)", expanded=False):
         s = cfg["soil"]
-        s["pH"] = st.number_input("pH (H2O)", 4.0, 8.0, float(s["pH"]), 0.1)
-        s["cec"] = st.number_input("CEC at pH 7, cmol(+)/kg", 1.0, 80.0, float(s["cec"]), 0.5)
-        s["ca"] = st.number_input("Exchangeable Ca, cmol(+)/kg", 0.0, 40.0, float(s["ca"]), 0.1)
-        s["mg"] = st.number_input("Exchangeable Mg, cmol(+)/kg", 0.0, 20.0, float(s["mg"]), 0.1)
-        s["k"] = st.number_input("Exchangeable K, cmol(+)/kg", 0.0, 10.0, float(s["k"]), 0.1)
+        s["pH"] = st.number_input("pH (H2O)", 3.5, 9.0, float(s["pH"]), 0.1)
+        s["cec"] = st.number_input("CEC at pH 7, cmol(+)/kg", 1.0, 120.0, float(s["cec"]), 0.5)
+        s["ca"] = st.number_input("Exchangeable Ca, cmol(+)/kg", 0.0, 60.0, float(s["ca"]), 0.1)
+        s["mg"] = st.number_input("Exchangeable Mg, cmol(+)/kg", 0.0, 30.0, float(s["mg"]), 0.1)
+        s["k"] = st.number_input("Exchangeable K, cmol(+)/kg", 0.0, 15.0, float(s["k"]), 0.1)
+        modes = ["pH7_CEC", "effective"]
         cfg["acidity_mode"] = st.radio(
-            "Soil acidity pool", ["pH7_CEC", "effective"],
-            format_func=lambda m: {"pH7_CEC": "Large: CEC at pH 7 minus bases",
-                                   "effective": "Small: effective CEC (measured KCl acidity)"}[m])
-        if cfg["acidity_mode"] == "effective":
-            cfg["effective_acidity_cmol_kg"] = st.number_input("Exchangeable acidity, cmol(+)/kg", 0.0, 20.0, 1.0, 0.1)
-        cfg["bulk_density_kg_m3"] = st.number_input("Bulk density, kg/m³", 400, 1600, 800, 50)
+            "Soil acidity pool", modes, index=modes.index(cfg["acidity_mode"]),
+            format_func=lambda m: {"pH7_CEC": "Large: bases plus acidity at pH 7",
+                                   "effective": "Small: bases plus KCl-exchangeable acidity"}[m])
+        if cfg["acidity_mode"] == "pH7_CEC":
+            st.caption("Uses the measured exchange acidity at pH 7." if "acidity_pH7" in s
+                       else "No measured acidity at pH 7 for this soil: CEC at pH 7 minus the bases is used.")
+        else:
+            cfg["effective_acidity_cmol_kg"] = st.number_input(
+                "KCl-exchangeable acidity, cmol(+)/kg", 0.0, 20.0, float(cfg["effective_acidity_cmol_kg"]), 0.1)
+            st.caption("Measured value for this soil." if "acidity_kcl" in s
+                       else "Not measured for this soil: an assumed value. Ask the lab for 1 M KCl acidity.")
+        cfg["bulk_density_kg_m3"] = st.number_input("Bulk density, kg/m³", 300, 1600, int(cfg["bulk_density_kg_m3"]), 50)
 
     with st.expander("Rock chemistry (wt%)", expanded=False):
         for ox in cfg["oxides"]:
             cfg["oxides"][ox] = st.number_input(ox, 0.0, 80.0, float(cfg["oxides"][ox]), 0.01, format="%.2f")
-        cfg["glass_frac"] = st.slider("Basaltic glass fraction", 0.0, 0.6, 0.0, 0.05,
-                                      help="Unknown until XRD with amorphous quantification")
+        if cfg.get("mineralogy"):
+            st.caption("Glass fraction comes from the measured mineralogy (table 05).")
+        else:
+            cfg["glass_frac"] = st.slider("Basaltic glass fraction", 0.0, 0.6, float(cfg["glass_frac"]), 0.05,
+                                          help="Unknown until XRD with amorphous quantification")
 
     st.subheader("Field")
-    cfg["application_t_ha"] = st.slider("Application rate, t/ha", 5, 100, 40, 5)
-    cfg["drainage_mm_yr"] = st.slider("Drainage below roots, mm/yr", 300, 1800, 900, 50)
-    cfg["log_pco2"] = st.slider("Soil log pCO2", -3.0, -1.0, -2.0, 0.1)
-    cfg["temp_c"] = st.slider("Soil temperature, °C", 10.0, 22.0, 17.0, 0.5)
+    cfg["application_t_ha"] = st.slider("Application rate, t/ha", 5, 100, int(cfg["application_t_ha"]), 5)
+    cfg["drainage_mm_yr"] = st.slider("Drainage below roots, mm/yr", 300, 1800, int(cfg["drainage_mm_yr"]), 50)
+    cfg["log_pco2"] = st.slider("Soil log pCO2", -3.0, -1.0, float(cfg["log_pco2"]), 0.1)
+    cfg["temp_c"] = st.slider("Soil temperature, °C", 10.0, 22.0, float(cfg["temp_c"]), 0.5)
 
     st.subheader("Kinetics")
-    cfg["field_factor"] = st.select_slider("Field-to-lab rate factor", [0.01, 0.03, 0.1, 0.3, 1.0], 0.1,
+    cfg["field_factor"] = st.select_slider("Field-to-lab rate factor",
+                                           with_value([0.01, 0.03, 0.1, 0.3, 1.0], cfg["field_factor"]),
+                                           cfg["field_factor"],
                                            help="Field weathering is usually 10-1000x slower than lab rates")
-    cfg["roughness"] = st.select_slider("Surface roughness (BET/geometric)", [1.0, 2.0, 5.0, 10.0, 20.0], 5.0)
-    cfg["years"] = st.slider("Years to simulate", 1, 20, 10)
-    name = st.text_input("Run name", f"{soil_key.split('_')[0]} · {psd_key} · glass {cfg['glass_frac']:.0%} · "
+    cfg["roughness"] = st.select_slider("Surface roughness (BET/geometric)",
+                                        with_value([1.0, 2.0, 5.0, 10.0, 20.0], cfg["roughness"]), cfg["roughness"])
+    cfg["years"] = st.slider("Years to simulate", 1, 20, int(cfg["years"]))
+    name = st.text_input("Run name", f"{cfg['soil_key']} · {psd_key} · glass {cfg['glass_frac']:.0%} · "
                                      f"ff {cfg['field_factor']}")
     go_btn = st.button("Run PHREEQC", type="primary", use_container_width=True)
 
+# Anything changed by hand in the sidebar is no longer the lab value: say so in the provenance.
+EDITED = "assumed (edited in the app)"
+for key in ("acidity_mode", "effective_acidity_cmol_kg", "bulk_density_kg_m3", "glass_frac", "application_t_ha",
+            "drainage_mm_yr", "log_pco2", "temp_c", "field_factor", "roughness", "years"):
+    if cfg[key] != base[key] and not (isinstance(cfg[key], (int, float)) and abs(cfg[key] - base[key]) < 1e-9):
+        cfg["provenance"][key] = dict(cfg["provenance"].get(key, {}), value=cfg[key], status=EDITED,
+                                      source=f"sidebar (lab value {base[key]})")
+if any(abs(cfg["soil"][k] - base["soil"][k]) > 1e-9 for k in ("pH", "cec", "ca", "mg", "k")):
+    cfg["provenance"]["soil"] = dict(cfg["provenance"]["soil"], status=EDITED,
+                                     value={k: cfg["soil"][k] for k in ("pH", "cec", "ca", "mg", "k")},
+                                     source=f"sidebar, starting from {cfg['soil_key']}")
+if any(abs(cfg["oxides"][k] - base["oxides"][k]) > 1e-9 for k in cfg["oxides"]):
+    cfg["provenance"]["oxides"] = dict(cfg["provenance"]["oxides"], status=EDITED, value=dict(cfg["oxides"]),
+                                       source=f"sidebar, starting from {cfg['rock_key']}")
+
 # ------------------------------------------------------------------ static info
 cons, full = co2_potential(cfg["oxides"])
-g100, _, xan = normative_minerals(cfg["oxides"], cfg["fe2_fraction"])
+g100, _, xan, mineral_source = mineral_assemblage(cfg)
 c1, c2, c3 = st.columns([1, 1, 2])
 c1.metric("CO2 potential (bicarbonate)", f"{full:.3f} t/t", f"{full*cfg['application_t_ha']:.1f} t/ha at "
           f"{cfg['application_t_ha']} t/ha", delta_color="off")
 c2.metric("CO2 potential (divalent only)", f"{cons:.3f} t/t", f"{cons*cfg['application_t_ha']:.1f} t/ha",
           delta_color="off")
 with c3:
-    st.caption(f"Normative minerals (g per 100 g): " + ", ".join(
-        f"{ {'Plag': f'plagioclase An{xan*100:.0f}', 'Kfs':'K-feldspar','Cpx':'diopside','Fo':'forsterite','Fa':'fayalite','Inert':'Fe-Ti oxides (inert)'}[k]} {v:.1f}"
-        for k, v in g100.items()))
+    st.caption(f"**Mineralogy in use: {mineral_source}.** Minerals (g per 100 g): " + ", ".join(
+        f"{ {'Plag': f'plagioclase An{xan*100:.0f}', 'Kfs':'K-feldspar','Cpx':'diopside','Fo':'forsterite','Fa':'fayalite','Inert':'Fe-Ti oxides and other (inert)','Gls':'basaltic glass'}[k]} {v:.1f}"
+        for k, v in g100.items() if v > 0))
+
+with st.expander("Inputs of this scenario and their status (measured, stand-in, assumed)"):
+    st.dataframe(data_io.provenance_table(cfg), use_container_width=True, hide_index=True)
+    st.caption("Stand-in means a real measurement on another rock or at another site. Assumed means a modelling "
+               "choice or a literature value. Nothing here is a measurement of TECHNOVIA's rock or of the "
+               "Lomba da Maia soil until those results are entered in data/lab.")
 
 # ------------------------------------------------------------------ live run
 def fig_lines(h, title):
@@ -187,7 +242,7 @@ if st.session_state.runs:
             m3.metric("Net removal (t/ha)", f"{I['net_removal']:.3f}")
             m4.metric("Net removal, 100 ha (t)", f"{I['net_removal']*100:.1f}")
             st.dataframe(pd.DataFrame([{
-                "Term (Isometric EWA v1.3)": k, "t CO2e/ha": round(v, 4) if isinstance(v, float) else v,
+                "Term (Isometric EWA v1.3)": k, "t CO2e/ha": f"{v:.4f}" if isinstance(v, float) else str(v),
                 "How it is obtained here": h} for k, v, h in [
                 ("CO2e Weathering", I["weathering"], "PHREEQC: base cations released from the rock"),
                 ("CO2e BiomassLoss", I["biomass_loss"], "not modelled yet (0): measure Ca, Mg, K in harvested grass"),

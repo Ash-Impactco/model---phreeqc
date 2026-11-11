@@ -42,4 +42,13 @@ The same tables are in `Ilha_Carbon_ERW_Data.xlsx`, one sheet each.
 - **Moreira and Terra da Riba potassium.** Two Notion tables disagree (K2O 1019 vs 286, and 806 vs 101 mg/kg). Check the original lab reports.
 - **Mn oxide** is written as Mn2O4 in one Marques Britas source. It is probably Mn3O4.
 - **The Sanguinho reports measured exchange acidity at pH 7** (for example 8.23 and 15.68 cmol/kg). That supports the model's "CEC at pH 7" acidity pool. **Ask for KCl exchangeable acidity at Lomba da Maia** as well, so both versions can be tested.
-- **Nothing here is from TECHNOVIA or Lomba da Maia yet.** Fill files 01–06 and 09 as results arrive, then copy the values into the model's `data/inputs.json`, or let the GitHub prompt build the loader.
+- **Nothing here is from TECHNOVIA or Lomba da Maia yet.** Fill files 01–06 and 09 as results arrive. The model reads these CSV files directly (see "Updating the data" in the main `README.md`), so there is nothing to copy anywhere else.
+- **The CSV files are the working copy.** `Ilha_Carbon_ERW_Data.xlsx` has not been regenerated since the rows below were added, so it is behind the CSVs.
+
+## Rows added for the model (none are new measurements)
+- `02`: the particle density the model uses for the fines (2900 kg/m³, assumed).
+- `03`: two assumed grading curves for the milling scenarios (`MILL-P80-1MM`, `MILL-P80-100UM`).
+- `13`: a status column (assumed: literature lab rates).
+- `14`: settings that used to be hidden in the code (glass fraction, assumed KCl acidity, assumed Na share, run length, the diameter assumed for the fraction finer than 63 µm, NFZ depth, η RiverOcean).
+- `09`: each row had one empty cell too many, which pushed `TO MEASURE` and the subsample count under the wrong headings in a spreadsheet. Fixed; no value was lost.
+- `15`: now written by the batch run (`python scripts/run_batch.py --update-lab`).

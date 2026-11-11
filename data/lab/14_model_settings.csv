@@ -9,3 +9,10 @@ Fe2+/Fe total,0.8,,assumed,measure FeO
 Soil acidity pool,CEC pH7 minus bases,,assumed,or effective CEC with KCl acidity
 Soil-solution Ca used for calibration,0.1,mmol/L,assumed,
 CO2 per eq alkalinity,1,mol/eq,assumption,bicarbonate at pH < 8
+Glass fraction of the rock,0,fraction,assumed,unknown until XRD with amorphous quantification; scenarios test 0 to 0.2
+Exchangeable (KCl) acidity when not measured,1.0,cmol(+)/kg,assumed,size of the small acidity pool; replace with 1 M KCl titration
+Exchangeable Na share of CEC when not measured,0.01,fraction,assumed,the two Sanguinho reports with Na give 0.009
+Simulation length,10,years,model choice,
+Diameter assumed for the fraction below the smallest sieve,30,um,assumed,no size data below 63 um; this controls most of the surface area; replace with laser PSD
+Near-Field Zone depth,20,cm,per protocol,Isometric EWA v1.3: deeper of 20 cm or tillage depth + 5-10 cm
+eta RiverOcean,0.85,,assumed,placeholder (see 17)
