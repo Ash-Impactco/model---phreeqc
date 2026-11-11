@@ -108,12 +108,11 @@ Every run reports an **Isometric accounting** tab, laid out like Equations 1, 2 
 
 ## Groundwater step (MODFLOW 6 + PHREEQC)
 
-The soil model gives the chemistry of water draining below the root zone. The groundwater step routes that drainage through a shallow basalt aquifer to a stream, using MODFLOW 6 for flow and transport and PHREEQC for the chemistry. The two are coupled through mf6rtm, which uses modflowapi and PhreeqcRM. It shows how long the extra alkalinity takes to reach the stream, how much is diluted, and how much is lost on the way, for example to calcite precipitation.
+The soil model gives the chemistry of water draining below the root zone, year by year. The groundwater step routes that drainage through a shallow basalt aquifer to a stream, using MODFLOW 6 for flow and transport and PHREEQC for the chemistry. The two are coupled through mf6rtm, which uses modflowapi and PhreeqcRM. It shows how long the extra alkalinity takes to reach the stream, how much has arrived, how much is still on its way, and how much is lost (calcite in the aquifer, degassing at the stream).
 
-- **Set-up:** a one-layer flow line from the upslope edge of the field to a stream. Recharge equals the soil drainage. Field cells receive basalt-amended drainage; the rest receive control drainage. It runs as a pair: rock and control.
-- **All hydrogeology is ASSUMED:** distance to stream 1,500 m, flow path under the field 600 m, thickness 20 m, hydraulic conductivity 10 m/day, porosity 0.15, background groundwater chemistry. Replace these with Azorean data, for example from the regional water authority (DROTRH) or published hydrogeology of São Miguel.
-- **Simplification:** the final soil year's drainage is applied as constant recharge.
-- **What it tells you so far:** in the optimistic soil scenario, about 95% of the extra alkalinity reaches the stream, after accounting for dilution by recharge outside the field, with no calcite loss. In the base case the signal (about 1 µeq/L) is too small to resolve.
+- **Set-up:** a vertical cross-section along the slope, 4 layers by 60 cells, from the upslope edge of the field to a stream. Recharge equals the soil drainage, and its chemistry changes every year with the soil model. Field cells receive basalt-amended drainage; the rest receive control drainage. It runs as a pair: rock and control.
+- **All hydrogeology is ASSUMED** and lives in `data/lab/21_hydrogeology.csv`: distance to stream 1,500 m, flow path under the field 600 m, thickness 20 m, hydraulic conductivity 10 m/day, porosity 0.15, background groundwater chemistry, no delay in the unsaturated zone. Replace these with Azorean data, for example from the regional water authority (DROTRH) or published hydrogeology of São Miguel.
+- **What it tells you so far:** in the optimistic soil scenario, none of the extra alkalinity is lost on the way, but it is slow: the first resolvable signal reaches the stream after about 6 years, and after 10 years about 23% has arrived and 77% is still in the aquifer. In the base case the signal (about 1 µeq/L) is too small to resolve.
 - **In the app:** after a soil run, use the "Groundwater step" section. **In batch:** `python scripts/run_groundwater.py`.
 
 ## Main limitations

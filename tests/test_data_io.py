@@ -86,7 +86,7 @@ def test_measurement_on_another_rock_or_site_is_a_stand_in():
 # ---------------------------------------------------------------- tables
 def test_every_table_loads_with_status():
     tables = data_io.load_all()
-    assert len(tables) == 20
+    assert len(tables) == 21
     for stem, df in tables.items():
         assert len(df) > 0, stem
         assert df.attrs["ragged_rows"] == [], f"{stem}: rows do not match the header"

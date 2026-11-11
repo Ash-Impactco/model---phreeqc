@@ -16,9 +16,60 @@ model forecasts on stand-in data, in t CO2e per hectare. They are not creditable
 | 2.4 | Plant uptake sink added, zero until the share leaving the field is known | 0.1037 | 0.0028 | 0.0083 | −0.1633 |
 | | *S1 with all grass carried off (scenario S12, upper bound)* | *0.1185* | *0.0029* | *0.0087* | *−0.1630* |
 | 2.5 | Trace metals (post-processing only; no effect on the chemistry) | 0.1037 | 0.0028 | 0.0083 | −0.1633 |
+| 2b | Groundwater: yearly recharge chemistry, layered cross-section, losses (soil results unchanged) | 0.1037 | 0.0028 | 0.0083 | −0.1633 |
 
 The Step 0 numbers stay reproducible with `python scripts/run_batch.py --source json`, and a test
 checks them on every run (`tests/reference/step0_results.csv`).
+
+## Step 2b: groundwater with MODFLOW 6 + PHREEQC
+
+**What changed** (`erw/groundwater.py`, inputs in the new `data/lab/21_hydrogeology.csv`)
+
+1. **Recharge chemistry changes every year.** Each soil year is one stress period, fed with the
+   mean chemistry of the water that left the soil column that year. Before, the final soil year
+   was held constant from the first day.
+2. **Vertical cross-section.** Several layers along the slope (default 4 by 60 cells), recharge
+   into the top layer, the stream as a fixed head at the downslope end of the top layer, vertical
+   conductivity a tenth of the horizontal. The unsaturated zone below 50 cm is not simulated; its
+   travel time can be set as a delay in whole years. Ground elevations are inputs, and a transect
+   can be read from a CSV or a GeoJSON line with elevations.
+3. **Aquifer chemistry.** Calcite and amorphous silica can form (the list is an input).
+   Optionally the aquifer basalt weathers at a constant rate that keeps the untreated aquifer at
+   its background alkalinity; the cations enter as bicarbonate, because adding them without a
+   carbon source drove the closed aquifer to pH 9.4. **CO2 degassing at the stream** is a separate
+   step: the stream-cell water is brought to the CO2 of open air, with calcite allowed to form.
+4. **Outputs:** time to first resolvable arrival, the stream alkalinity series, and a balance of
+   where the extra alkalinity is (arrived, still in the aquifer, calcite, residual). Signals below
+   10 µeq/L are reported as not resolvable.
+5. **Tests:** 9, including the S7 regression and a conservation check (residual below 1 %).
+
+Every hydrogeological value is still **assumed** (table 21). Not done: the macOS install check
+(this session runs on Linux), and MODFLOW's UZF package (the delay parameter is used instead).
+
+**Effect on results** (S7, optimistic scenario; hydrogeology assumed)
+
+| | Before (final year held constant) | After (yearly chemistry, 4 layers) |
+|---|---|---|
+| Extra alkalinity entering the aquifer in 10 years | not reported | 0.527 t CO2e/ha (equal to the soil export at 50 cm) |
+| Extra alkalinity at the stream at year 10 | 43.5 µeq/L | 52.0 µeq/L |
+| First resolvable arrival (10 µeq/L) | not reported | year 6.3 |
+| Arrived at the stream within 10 years | "95 %" (of a steady input) | 23 % |
+| Still in the aquifer at year 10 | not reported | 77 % |
+| Lost to calcite in the aquifer | none | none |
+| Balance residual | not checked | 0.0 % |
+| Carbon kept after degassing at the stream | not modelled | 98 % (95 % with aquifer weathering on) |
+
+S1 stays too small to resolve (about 1 µeq/L in the drainage).
+
+**What this shows**
+
+- The earlier "95 % reaches the stream" described a steady input. With the real build-up, the
+  drainage only becomes rich in alkalinity after year 3, and the aquifer holds about 3 years of
+  recharge, so after 10 years most of the extra alkalinity is still on its way. Nothing is lost
+  on the way in this scenario; it is late, not gone.
+- A delay in the unsaturated zone pushes everything back by the same number of years (with 3
+  years, only 6 % has arrived by year 10). The depth to the water table is therefore a key unknown.
+- One layer and four layers give almost the same stream signal (23.3 % against 22.7 % arrived).
 
 ## Step 2.5: trace metals
 

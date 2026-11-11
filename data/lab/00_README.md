@@ -39,6 +39,7 @@ The same tables are in `Ilha_Carbon_ERW_Data.xlsx`, one sheet each.
 | 18_emission_factors.csv | Placeholder emission factors for haulage, spreading, milling (replace with real data) |
 | 19_plant_uptake_and_grazing.csv | Pasture yield, Ca, Mg, K in herbage and milk, and the share that leaves the field (to find) |
 | 20_trace_metal_limits.csv | Soil limits and baseline soil contents for trace metals (blank until provided) |
+| 21_hydrogeology.csv | Aquifer geometry and properties, background groundwater chemistry, stream CO2 (all assumed until Azorean data are entered) |
 
 ## Points to check
 - **Moreira and Terra da Riba potassium.** Two Notion tables disagree (K2O 1019 vs 286, and 806 vs 101 mg/kg). Check the original lab reports.

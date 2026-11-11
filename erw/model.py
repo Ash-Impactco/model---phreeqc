@@ -558,7 +558,7 @@ EQUILIBRIUM_PHASES 1-{ncells}
 SELECTED_OUTPUT 1
   -reset false
 USER_PUNCH 1
-  -headings t_s cell pH alk ca mg na k si caX2 mgX2 kX naX hX bc_left calcite alX upt {" ".join(EXTRA_COLS)}
+  -headings t_s cell pH alk ca mg na k si caX2 mgX2 kX naX hX bc_left calcite alX upt {" ".join(EXTRA_COLS)} cl
   10 PUNCH TOTAL_TIME, CELL_NO, -LA("H+"), ALK, TOT("Ca"), TOT("Mg"), TOT("Na"), TOT("K"), TOT("Si")
   20 PUNCH {punch_ex}
   30 PUNCH {punch_bc}
@@ -567,6 +567,7 @@ USER_PUNCH 1
   60 PUNCH {punch_up}
   70 PUNCH {", ".join(" + ".join(v) if v else "0" for v in by_mineral.values())}
   80 PUNCH {", ".join(" + ".join(v) if v else "0" for v in by_bin)}
+  90 PUNCH TOT("Cl")
 END
 """)
     return "\n".join(L), bc0
@@ -693,7 +694,7 @@ MINERAL_KEYS = ["Plag", "Kfs", "Cpx", "Fo", "Fa", "Gls"]
 MAX_BINS = 8
 EXTRA_COLS = [f"m_{k}" for k in MINERAL_KEYS] + [f"b{i}" for i in range(MAX_BINS)]
 COLS = ["t_s", "cell", "pH", "alk", "ca", "mg", "na", "k", "si", "caX2", "mgX2", "kX", "naX", "hX", "bc_left", "calcite",
-        "alX", "upt"] + EXTRA_COLS
+        "alX", "upt"] + EXTRA_COLS + ["cl"]
 C = {c: i for i, c in enumerate(COLS)}
 
 
@@ -738,6 +739,7 @@ def run_stream(cfg):
     hist["bin_left_g_m2"] = [[] for _ in cfg["psd"]]
     hist["bin_diameter_um"] = [d * 1e6 for _f, d in cfg["psd"]]
     hist["host_frac_diss"] = []          # share of olivine + pyroxene dissolved (hosts of Ni, Cr, Co)
+    hist["drainage"] = []                # yearly mean chemistry of the water leaving the column base
     seasonal = bool(cfg.get("seasonal_drainage")) and cfg.get("drainage_monthly_share")
     times = [0.0] + shift_times(cfg, int(round(spy * years)) + 1) if seasonal else None
     for yr in range(1, years + 1):
@@ -777,6 +779,11 @@ def run_stream(cfg):
         cum_export += float(np.sum(d_alk) * water)                     # eq / m2
         effluent["t"] += list(xr[:k, C["t_s"]] / (365.25 * 86400)); effluent["d_alk"] += list(d_alk)
         er = r[r[:, C["cell"]] == ncells]; ec = c[c[:, C["cell"]] == ncells]      # for the year-end drainage chemistry
+        # mean chemistry of the water that left the column base this year (mol/kgw); recharge for the aquifer
+        mean_water = lambda A: dict(
+            pH=float(-np.log10(np.mean(10.0 ** (-A[:, C["pH"]])))),
+            **{key: float(np.mean(A[:, C[key]])) for key in ("alk", "ca", "mg", "na", "k", "si", "cl")})
+        hist["drainage"].append(dict(rock=mean_water(xr[:k]), ctrl=mean_water(xc[:k])))
         # export across the Near-Field Zone boundary (Isometric: removal counted when cations leave the NFZ)
         nr = fr[fr[:, C["cell"]] == nfz_cells]; nc = fc[fc[:, C["cell"]] == nfz_cells]
         kk = min(len(nr), len(nc))

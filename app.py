@@ -370,9 +370,10 @@ else:
 # ------------------------------------------------------------------ groundwater (MODFLOW 6 + PHREEQC)
 st.divider()
 st.markdown("### Groundwater step: MODFLOW 6 + PHREEQC")
-st.caption("Routes the soil drainage from the last run through a simple shallow basalt aquifer to a stream "
-           "(MODFLOW 6 flow and transport, PHREEQC chemistry via mf6rtm). The hydrogeology below is ASSUMED "
-           "until Azorean aquifer data is available. The final-year soil drainage is held constant as recharge.")
+st.caption("Routes the soil drainage from the last run through a shallow basalt aquifer to a stream, as a "
+           "vertical cross-section along the slope (MODFLOW 6 flow and transport, PHREEQC chemistry via mf6rtm). "
+           "Each soil year's drainage chemistry is one year of recharge. The hydrogeology is ASSUMED until Azorean "
+           "aquifer data are entered in data/lab/21_hydrogeology.csv.")
 try:
     from erw.groundwater import AQUIFER_DEFAULTS, check_binaries, run_coupled
     have_bins, exe, lib = check_binaries()
@@ -399,14 +400,18 @@ else:
         st.session_state.gw = res
     if "gw" in st.session_state:
         res = st.session_state.gw
-        h1, h2, h3 = st.columns(3)
-        h1.metric("Extra alkalinity in field drainage (µeq/L)", f"{res['d_alk_input_ueq']:.1f}")
+        h1, h2, h3, h4 = st.columns(4)
+        h1.metric("Peak extra alkalinity in field drainage (µeq/L)", f"{max(res['d_alk_input_ueq_by_year']):.1f}")
         h2.metric("Extra alkalinity at stream, end (µeq/L)", f"{res['d_alk_ueq'][-1]:.1f}")
-        resolvable = res["d_alk_input_ueq"] >= 10
-        h3.metric("Share of field alkalinity reaching stream",
-                  f"{res['reach_fraction']*100:.0f}%" if resolvable else "too small to resolve",
-                  help="After dilution by recharge outside the field. Needs at least ~10 µeq/L of extra "
-                       "alkalinity in the drainage; below that, numerical noise dominates.")
+        resolvable = res["resolvable"]
+        sh = res["balance_share"]
+        h3.metric("Arrived at the stream so far", f"{sh['stream']*100:.0f}%" if resolvable else "too small to resolve",
+                  help="Share of the extra alkalinity that entered the aquifer and has left to the stream by the "
+                       "end of the run. Needs at least 10 µeq/L of extra alkalinity in the drainage; below that, "
+                       "numerical noise dominates.")
+        h4.metric("Still in the aquifer", f"{sh['in_transit']*100:.0f}%" if resolvable else "too small to resolve",
+                  help="On its way to the stream. Lost to calcite: "
+                       + (f"{sh['calcite']*100:.1f}%" if resolvable else "not resolvable"))
         a, b = st.columns(2)
         f = go.Figure(go.Scatter(x=res["t_years"], y=res["d_alk_ueq"], line=dict(color=TEAL, width=3)))
         f.update_layout(title="Extra alkalinity arriving at the stream (rock minus control)",

@@ -1,0 +1,26 @@
+parameter,value,range,unit,status,source
+Distance from the upslope edge of the field to the stream,1500,300-5000,m,assumed,"not measured. Replace with the map distance along the slope from the field to the receiving stream"
+Flow-path length under the treated field,600,100-3000,m,assumed,not measured. Length of the field along the slope
+Saturated thickness of the aquifer,20,5-100,m,assumed,"replace with Azorean data (DROTRH, published hydrogeology of São Miguel)"
+Hydraulic conductivity,10,1-100,m/day,assumed,fractured basalt; replace with pumping-test or published values
+Ratio of horizontal to vertical conductivity,10,1-100,,assumed,layered lava flows; controls how deep the field water sinks
+Effective porosity,0.15,0.05-0.3,fraction,assumed,
+Longitudinal dispersivity,10,1-50,m,assumed,about 1 % of the path length
+Vertical transverse dispersivity,0.1,0.01-1,m,assumed,about 1 % of the longitudinal value
+Number of model layers,4,1-10,,model choice,vertical cross-section; 1 gives the older single-layer flow line
+Number of model columns,60,20-200,,model choice,along the slope
+Transport steps per year,24,12-52,,model choice,
+Ground elevation at the upslope end,300,,m above sea level,assumed,"placeholder for the topography. Used for the drawing and the depth to the water table only; replace with a DEM transect"
+Ground elevation at the stream,100,,m above sea level,assumed,as above
+Travel time through the unsaturated zone below 50 cm,0,0-20,years,assumed,"0 means the soil drainage reaches the water table in the same year. The water table may be tens of metres down, so this delay is probably not zero"
+Secondary phases allowed to form in the aquifer,Calcite; SiO2(am),,,model choice,equilibrium phases (llnl.dat names)
+Weathering of the aquifer basalt,off,,,model choice,"on: a constant release of Ca, Mg, Na, K and Si that keeps the untreated aquifer at the background alkalinity; off: the aquifer water drifts towards the composition of the soil drainage"
+Stream CO2 for degassing,-3.38,,log atm,assumed,"open air, about 420 ppm. Stream water is taken to degas fully to this level"
+Background groundwater pH,7.0,,pH,assumed,dilute basaltic groundwater; replace with spring or well analyses near Lomba da Maia
+Background groundwater Ca,0.3,,mmol/L,assumed,as above
+Background groundwater Mg,0.3,,mmol/L,assumed,as above
+Background groundwater Na,1.0,,mmol/L,assumed,as above
+Background groundwater K,0.1,,mmol/L,assumed,as above
+Background groundwater Cl,0.8,,mmol/L,assumed,as above
+Background groundwater Si,0.5,,mmol/L,assumed,as above
+Background groundwater alkalinity,1.2,,meq/L,assumed,as above
