@@ -9,13 +9,14 @@ Two regressions:
 """
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import pytest
 
 from conftest import append_rows
 from erw import data_io
 from erw.model import (andosol_pool, build_setup, co2_potential, default_config, exchange_pool, implied_oxides,
-                       mineral_assemblage, normative_minerals, run, full_input)
+                       mineral_assemblage, normative_minerals, run, full_input, shift_times, _geometry)
 
 ROOT = Path(__file__).resolve().parents[1]
 COLUMNS = {"rock_dissolved_10yr_pct": lambda h: h["frac_diss"][-1] * 100,
@@ -114,6 +115,15 @@ def test_original_inputs_still_give_the_step0_numbers(s1_original):
 
 def test_lab_fed_base_case_matches_the_results_table(s1_lab):
     assert_matches(s1_lab, s1_row(ROOT / "data" / "lab" / "15_model_results_10yr.csv"), places=4)
+
+
+def test_cation_budget_closes(s1_lab):
+    """Released cations = held on exchange + leaving the Near-Field Zone + calcite, within a few per cent.
+    (The flux is summed over the water that leaves at each shift; the year-end state is not counted twice.)"""
+    i = s1_lab["iso"][-1]
+    assert abs(i["non_carbonic_neut"]) < 0.03 * i["weathering"]
+    assert i["weathering"] == pytest.approx(i["exported_from_nfz"] + i["net_sorption"] + i["net_new_carbonate"]
+                                            + i["non_carbonic_neut"], rel=1e-9)
 
 
 def test_lab_fed_base_case_is_physically_sensible(s1_lab, s1_original):
@@ -242,3 +252,29 @@ def test_glass_law_matches_the_old_rate_with_gibbsite_and_slows_with_amorphous_a
     slow = released(glass_cfg(acidity_mode="andosol", al_phase="amorphous"))
     fast = released(glass_cfg(acidity_mode="andosol", al_phase="gibbsite"))
     assert slow < 0.5 * fast
+
+
+# ---------------------------------------------------------------- seasonal drainage
+def test_shift_times_follow_the_monthly_shares():
+    cfg = default_config()
+    per_year = int(round(_geometry(cfg)[-1]))
+    t = np.array([0.0] + shift_times(cfg, 3 * per_year)) / 86400.0
+    assert t[per_year] == pytest.approx(365.25) and t[3 * per_year] == pytest.approx(3 * 365.25)
+    steps = np.diff(t)[:per_year]
+    assert steps.max() / steps.min() == pytest.approx(3.0, rel=0.15)      # dry months drain a third as fast
+    # the run starts in October: the first six months take 75 % of the year's shifts
+    first_half = np.searchsorted(t[1:per_year + 1], 31 + 30 + 31 + 31 + 28.25 + 31 + 1.0)      # within a day of 1 April
+    assert first_half == round(0.75 * per_year)
+    # equal shares give steady drainage
+    cfg["drainage_monthly_share"] = [1 / 12] * 12
+    even = np.diff([0.0] + shift_times(cfg, per_year))
+    assert even.max() / even.min() < 1.15                                 # only the unequal month lengths remain
+
+
+def test_seasonal_run_keeps_the_yearly_totals():
+    steady = default_config(); steady["years"] = 2
+    seasonal = default_config(); seasonal.update(years=2, seasonal_drainage=True)
+    a, b = run(steady), run(seasonal)
+    assert b["effluent"]["t"][-1] < 2.0 and len(a["effluent"]["t"]) == len(b["effluent"]["t"])   # same number of shifts
+    assert b["hist"]["released_t"][-1] == pytest.approx(a["hist"]["released_t"][-1], rel=0.05)
+    assert full_input(seasonal).count("TRANSPORT") > 4 and full_input(steady).count("TRANSPORT") == 1

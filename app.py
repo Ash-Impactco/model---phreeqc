@@ -103,6 +103,10 @@ with st.sidebar:
     st.subheader("Field")
     cfg["application_t_ha"] = st.slider("Application rate, t/ha", 5, 100, int(cfg["application_t_ha"]), 5)
     cfg["drainage_mm_yr"] = st.slider("Drainage below roots, mm/yr", 300, 1800, int(cfg["drainage_mm_yr"]), 50)
+    cfg["seasonal_drainage"] = st.checkbox(
+        "Seasonal drainage (assumed monthly pattern)", value=bool(cfg["seasonal_drainage"]),
+        help="Spreads the yearly drainage over the months using the shares in table 12 (75 % from October "
+             "to March, an assumption until station data are entered). The run starts in the month set in table 14.")
     cfg["log_pco2"] = st.slider("Soil log pCO2", -3.0, -1.0, float(cfg["log_pco2"]), 0.1)
     cfg["temp_c"] = st.slider("Soil temperature, °C", 10.0, 22.0, float(cfg["temp_c"]), 0.5)
 
@@ -120,7 +124,7 @@ with st.sidebar:
 
 # Anything changed by hand in the sidebar is no longer the lab value: say so in the provenance.
 EDITED = "assumed (edited in the app)"
-for key in ("acidity_mode", "al_phase", "glass_rate_law", "effective_acidity_cmol_kg", "bulk_density_kg_m3", "glass_frac", "application_t_ha",
+for key in ("acidity_mode", "al_phase", "glass_rate_law", "seasonal_drainage", "effective_acidity_cmol_kg", "bulk_density_kg_m3", "glass_frac", "application_t_ha",
             "drainage_mm_yr", "log_pco2", "temp_c", "field_factor", "roughness", "years"):
     if cfg[key] != base[key] and not (isinstance(cfg[key], (int, float)) and abs(cfg[key] - base[key]) < 1e-9):
         cfg["provenance"][key] = dict(cfg["provenance"].get(key, {}), value=cfg[key], status=EDITED,

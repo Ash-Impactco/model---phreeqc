@@ -11,9 +11,61 @@ model forecasts on stand-in data, in t CO2e per hectare. They are not creditable
 | 2.1 | Andosol acidity added as an option (base case unchanged) | 0.1037 | 0.0029 | 0.0088 | −0.1630 |
 | | *S1 with the Andosol option switched on (scenario S9)* | *0.1055* | *0.0029* | *0.0095* | *−0.1623* |
 | 2.2 | Glass: full Gislason & Oelkers (2003) rate law (S1 has no glass, so unchanged) | 0.1037 | 0.0029 | 0.0088 | −0.1630 |
+| 2.3 | Correction: the year-end state was counted twice in the export sum | 0.1037 | 0.0028 | 0.0083 | −0.1633 |
+| | *S1 with seasonal drainage switched on (scenario S11, assumed pattern)* | *0.1039* | *0.0027* | *0.0081* | *−0.1635* |
 
 The Step 0 numbers stay reproducible with `python scripts/run_batch.py --source json`, and a test
 checks them on every run (`tests/reference/step0_results.csv`).
+
+## Step 2.3: seasonal drainage, and a correction to the export sum
+
+**Correction (changes every scenario's export by about −5 %)**
+
+While adding seasons I found that the model as supplied over-counted the alkalinity leaving the
+column. PHREEQC writes the state *before* the first shift of every TRANSPORT block as well as the
+state after each shift. The model ran one block per year and summed every row, so the state at
+each year end was counted twice: 21 states per year for 20 shifts. The water that leaves at a
+shift is the water that was in the cell before it, so the sum now runs over the states at the
+start of each shift. With many blocks per year (seasons) the old sum would have been about 30 %
+too high. Released cations and cations held on exchange are not affected.
+
+The frozen Step 0 reference keeps the original sum (`export_accounting = "step0"` in
+`legacy_config`), so `--source json` still reproduces the supplied numbers. A new test checks that
+released = held on exchange + leaving the NFZ + calcite, within 3 %.
+
+**Seasonal drainage (new option, off by default)**
+
+- The yearly drainage is spread over the months by the shares in `12_climate_and_hydrology.csv`.
+  A pore-water shift happens each time the cumulative drainage fills one cell, so wet months get
+  short time steps (about 12 days) and dry months long ones (about 36 days). Yearly totals and
+  the number of shifts are unchanged. The run starts in October (spreading window, table 14).
+- **The monthly shares are an assumption**, not station data: a two-level pattern with 75 % of
+  the drainage from October to March. I could not read the IPMA climate normals from this session
+  (the site is blocked here), so table 12 still says `TO FIND` for rainfall and
+  evapotranspiration, and seasonal drainage stays **off** in the base case.
+- Temperature is still constant through the year.
+
+**Effect on results** (10 years, t CO2e/ha, before → after the correction)
+
+| Scenario | Leaving at 50 cm | Leaving the NFZ | Net removal |
+|---|---|---|---|
+| S1 Base | 0.0029 → 0.0028 | 0.0088 → 0.0083 | −0.1630 → −0.1633 |
+| S2 Soil B | 0.0039 → 0.0037 | 0.0120 → 0.0113 | −0.1602 → −0.1608 |
+| S3 Milled P80 1 mm | 0.0058 → 0.0055 | 0.0173 → 0.0164 | −0.2457 → −0.2465 |
+| S4 Milled P80 100 µm | 0.0113 → 0.0107 | 0.0339 → 0.0321 | −0.6816 → −0.6831 |
+| S5 Base + 20 % glass | 0.0118 → 0.0112 | 0.0280 → 0.0265 | −0.1466 → −0.1478 |
+| S6 Small acidity pool | 0.0075 → 0.0071 | 0.0226 → 0.0215 | −0.1512 → −0.1521 |
+| S7 Optimistic | 0.5549 → 0.5268 | 1.4619 → 1.3893 | +0.5322 → +0.4705 |
+| S8 Upper bound | 2.3169 → 2.2069 | 3.6242 → 3.4517 | +2.3701 → +2.2236 |
+| S9 Andosol acidity | 0.0029 → 0.0028 | 0.0095 → 0.0090 | −0.1623 → −0.1628 |
+| S10 As S7, Andosol | 0.0258 → 0.0244 | 0.0989 → 0.0939 | −0.6263 → −0.6306 |
+| **S11 Base, seasonal drainage (new)** | 0.0027 | 0.0081 | −0.1635 |
+
+**What this shows**
+
+Seasonal drainage on its own changes little (S11 against S1: 0.0081 against 0.0083 leaving the
+NFZ), because the cations are buffered by the exchanger and the temperature is constant. It will
+matter more once monthly temperature and measured rainfall are in.
 
 ## Step 2.2: basaltic glass, full Gislason & Oelkers (2003) rate law
 

@@ -272,7 +272,7 @@ def test_lab_config_matches_the_original_inputs_except_grain_size():
     from erw.model import default_config
     lab, old = default_config(), default_config(source="json")
     for k, v in old.items():
-        if k in ("psd", "soil", "soil_key", "isometric", "emissions"):
+        if k in ("psd", "soil", "soil_key", "isometric", "emissions", "export_accounting"):
             continue
         assert lab[k] == pytest.approx(v) if isinstance(v, (int, float)) else lab[k] == v, k
     for k in ("pH", "cec", "ca", "mg", "k"):

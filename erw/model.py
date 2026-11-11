@@ -60,6 +60,7 @@ def legacy_config(soil="A_Moreira", psd="as_is_0-4mm"):
     d = copy.deepcopy(INPUTS["defaults"])
     d["isometric"] = copy.deepcopy(INPUTS.get("isometric", {}))
     d["emissions"] = copy.deepcopy(INPUTS.get("emissions", {}))
+    d["export_accounting"] = "step0"         # the flux sum of the model as supplied (see run_stream)
     d["soil"] = copy.deepcopy(INPUTS["soils"][soil]); d["soil_key"] = soil
     d["oxides"] = copy.deepcopy(INPUTS["feedstock"]["oxides_wt_pct"])
     d["fe2_fraction"] = INPUTS["feedstock"]["fe2_fraction_of_total_fe"]
@@ -549,8 +550,39 @@ END
     return "\n".join(L), bc0
 
 
-def transport_block(cfg, shifts, first):
+MONTH_DAYS = [31, 28.25, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+
+
+def shift_times(cfg, n_shifts):
+    """Times (seconds from the start of the run) at which each of the first n_shifts pore-water
+    shifts happens, for seasonal drainage.
+
+    One shift moves one cell's water down. It happens each time the cumulative drainage reaches
+    another multiple of the water held in a cell, so wet months get several short steps and dry
+    months few long ones. The monthly shares of the annual drainage come from table 12; the run
+    starts at the beginning of cfg["start_month"] (1 = January).
+    """
+    water_mm = _geometry(cfg)[2]                            # kg/m2 = mm of water per cell
+    share = cfg["drainage_monthly_share"]
+    total = sum(share)
+    monthly_mm = [cfg["drainage_mm_yr"] * x / total for x in share]
+    start = int(cfg.get("start_month", 1)) - 1
+    times, t, cum, k, m = [], 0.0, 0.0, 1, start
+    while len(times) < n_shifts:
+        days, mm = MONTH_DAYS[m % 12], monthly_mm[m % 12]
+        while len(times) < n_shifts and mm > 0 and k * water_mm <= cum + mm + 1e-9:
+            times.append(t + (k * water_mm - cum) / mm * days * 86400.0)
+            k += 1
+        cum += mm
+        t += days * 86400.0
+        m += 1
+    return times
+
+
+def transport_block(cfg, shifts, first, time_step=None):
     ncells, *_ , shift_s, _ = _geometry(cfg)
+    if time_step is not None:
+        shift_s = time_step
     if first:
         return f"""TRANSPORT
   -cells {ncells}
@@ -563,6 +595,11 @@ def transport_block(cfg, shifts, first):
   -punch_cells 1-{ncells}
   -punch_frequency 1
   -print_frequency 100000
+END"""
+    if time_step is not None:
+        return f"""TRANSPORT
+  -shifts {shifts}
+  -time_step {shift_s:.6e}
 END"""
     return f"""TRANSPORT
   -shifts {shifts}
@@ -614,23 +651,47 @@ def run_stream(cfg):
     emis = project_emissions_t_ha(cfg)
     cum_export_nfz = 0.0
     hist["iso"] = []
+    seasonal = bool(cfg.get("seasonal_drainage")) and cfg.get("drainage_monthly_share")
+    times = [0.0] + shift_times(cfg, int(round(spy * years)) + 1) if seasonal else None
     for yr in range(1, years + 1):
         target = int(round(spy * yr))
         n = max(target - done_shifts, 1)
-        last = {}
+        last, flux = {}, {}
+        # PHREEQC writes the state before the first shift of every TRANSPORT block as well as the state
+        # after each shift. The water that leaves at a shift is the water that was in the cell before
+        # it, so the flux is summed over the states at the start of each shift: all rows of a block
+        # except its final state. (The model as supplied summed every row, which counted the state at
+        # each year end twice; "step0" keeps that for the frozen reference.)
+        drop_last = (lambda a: a) if cfg.get("export_accounting") == "step0" else (lambda a: a[:-ncells])
         for kind, s in sims.items():
-            s["ip"].run_string(transport_block(cfg, n, first=(done_shifts == 0)))
-            last[kind] = _rows(s["ip"])
+            if not seasonal:
+                s["ip"].run_string(transport_block(cfg, n, first=(done_shifts == 0)))
+                last[kind] = _rows(s["ip"])
+                flux[kind] = drop_last(last[kind])
+                continue
+            # seasonal: one TRANSPORT block per run of shifts with the same time step
+            parts, k = [], done_shifts
+            while k < done_shifts + n:
+                dt, j = times[k + 1] - times[k], k + 1
+                while j < done_shifts + n and abs((times[j + 1] - times[j]) - dt) < 1e-6 * dt:
+                    j += 1
+                s["ip"].run_string(transport_block(cfg, j - k, first=(k == 0), time_step=dt))
+                parts.append(_rows(s["ip"]))
+                k = j
+            last[kind] = np.vstack(parts)
+            flux[kind] = np.vstack([drop_last(a) for a in parts])
         done_shifts += n
         r, c = last["rock"], last["ctrl"]
-        # effluent: last cell, every shift
-        er = r[r[:, C["cell"]] == ncells]; ec = c[c[:, C["cell"]] == ncells]
-        k = min(len(er), len(ec))
-        d_alk = er[:k, C["alk"]] - ec[:k, C["alk"]]
+        fr, fc = flux["rock"], flux["ctrl"]
+        # effluent: water leaving the last cell at every shift
+        xr = fr[fr[:, C["cell"]] == ncells]; xc = fc[fc[:, C["cell"]] == ncells]
+        k = min(len(xr), len(xc))
+        d_alk = xr[:k, C["alk"]] - xc[:k, C["alk"]]
         cum_export += float(np.sum(d_alk) * water)                     # eq / m2
-        effluent["t"] += list(er[:k, C["t_s"]] / (365.25 * 86400)); effluent["d_alk"] += list(d_alk)
+        effluent["t"] += list(xr[:k, C["t_s"]] / (365.25 * 86400)); effluent["d_alk"] += list(d_alk)
+        er = r[r[:, C["cell"]] == ncells]; ec = c[c[:, C["cell"]] == ncells]      # for the year-end drainage chemistry
         # export across the Near-Field Zone boundary (Isometric: removal counted when cations leave the NFZ)
-        nr = r[r[:, C["cell"]] == nfz_cells]; nc = c[c[:, C["cell"]] == nfz_cells]
+        nr = fr[fr[:, C["cell"]] == nfz_cells]; nc = fc[fc[:, C["cell"]] == nfz_cells]
         kk = min(len(nr), len(nc))
         cum_export_nfz += float(np.sum(nr[:kk, C["alk"]] - nc[:kk, C["alk"]]) * water)
         # end-of-year state: last ncells rows
@@ -711,4 +772,15 @@ def full_input(cfg, rock=True):
     head = (f"# Ilha Carbon ERW scenario model ({'basalt' if rock else 'no-rock control'} column)\n"
             f"# Database: llnl.dat. Soil: {cfg['soil'].get('label', cfg.get('soil_key',''))}. "
             f"Grain size: {cfg['psd_key']}. {cfg['application_t_ha']} t/ha, {cfg['years']} years.\n")
-    return head + setup + "\n" + transport_block(cfg, int(round(spy * cfg["years"])), first=True) + "\n"
+    total = int(round(spy * cfg["years"]))
+    if not (cfg.get("seasonal_drainage") and cfg.get("drainage_monthly_share")):
+        return head + setup + "\n" + transport_block(cfg, total, first=True) + "\n"
+    times = [0.0] + shift_times(cfg, total)                 # seasonal: the same blocks the model runs
+    blocks, k = [], 0
+    while k < total:
+        dt, j = times[k + 1] - times[k], k + 1
+        while j < total and abs((times[j + 1] - times[j]) - dt) < 1e-6 * dt:
+            j += 1
+        blocks.append(transport_block(cfg, j - k, first=(k == 0), time_step=dt))
+        k = j
+    return head + setup + "\n" + "\n".join(blocks) + "\n"

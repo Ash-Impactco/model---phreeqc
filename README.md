@@ -82,7 +82,7 @@ Values such as `<0.05`, `2850-3000` and `~11` are understood. Leave unknown cell
 
 ## How the model works
 
-- **Column:** 0–50 cm in 10 cm cells, with basalt mixed into 0–20 cm. Steady drainage, fixed soil CO2 and O2. Gibbsite, kaolinite, amorphous silica, calcite and Fe(OH)3 can precipitate.
+- **Column:** 0–50 cm in 10 cm cells, with basalt mixed into 0–20 cm. Steady drainage by default, or monthly drainage from the shares in table 12 (an assumed pattern until station data are entered). Fixed soil CO2 and O2. Gibbsite, kaolinite, amorphous silica, calcite and Fe(OH)3 can precipitate.
 - **Rock:** a cation-conserving norm from the oxides (plagioclase, K-feldspar, diopside, forsterite, fayalite, inert Fe-Ti oxides), plus optional basaltic glass. Measured XRD phases replace the norm when table 05 has them.
 - **Grain size:** 5 to 8 bins interpolated from the grading curve in table 03. The fraction finer than the smallest sieve (63 µm) is given an assumed diameter of 30 µm, which carries about two thirds of the surface area.
 - **Dissolution rates:** Palandri & Kharaka (2004), acid and neutral terms, Arrhenius-corrected. Area is geometric surface area × roughness × field factor, with shrinking-core loss. Glass follows the Gislason & Oelkers (2003) rate law, r = A·exp(−Ea/RT)·(a_H⁺³/a_Al³⁺)^(1/3) per geometric area, so it slows down where dissolved Al is high.

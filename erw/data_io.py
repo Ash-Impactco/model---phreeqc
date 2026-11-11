@@ -523,6 +523,7 @@ _SETTING_ROWS = [
     ("14", "setting", "Simulation length", "years", 1.0, "years"),
     ("14", "setting", "Diameter assumed for the fraction below the smallest sieve", "fines_rep_um", 1.0, "um"),
     ("14", "setting", "Half-point pH of the variable charge", "vc_half_ph", 1.0, "pH"),
+    ("14", "setting", "Start month of the run", "start_month", 1.0, "month"),
     ("14", "setting", "Reactive Al hydroxide in the soil", "al_reservoir_mol_kgw", 1.0, "mol/kgw"),
     ("12", "parameter", "Mean soil temperature", "temp_c", 1.0, "°C"),
     ("12", "parameter", "Net drainage below root zone", "drainage_mm_yr", 1.0, "mm/yr"),
@@ -531,7 +532,9 @@ _SETTING_ROWS = [
     ("12", "parameter", "Soil bulk density", "bulk_density_kg_m3", 1000.0, "kg/m3"),
     ("11", "item", "Application rate", "application_t_ha", 1.0, "t/ha"),
 ]
-_INT_KEYS = {"years"}
+_INT_KEYS = {"years", "start_month"}
+MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
+          "November", "December"]
 
 _ISO_ROWS = [
     ("14", "setting", "Near-Field Zone depth", "nfz_depth_cm", "cm"),
@@ -596,6 +599,27 @@ def lab_defaults(lab_dir=LAB):
     prov["acidity_mode"] = _prov(d["acidity_mode"], status_class(row["status"]) if row is not None else "assumed",
                                  f"{tables['14'].attrs['file']}: Soil acidity pool" if row is not None
                                  else "fallback data/inputs.json", "")
+    row = _find_row(tables["14"], "setting", "Seasonal drainage")
+    d["seasonal_drainage"] = bool(row is not None and row["value"].strip().lower() in ("on", "yes", "true", "1"))
+    prov["seasonal_drainage"] = _prov("on" if d["seasonal_drainage"] else "off",
+                                      status_class(row["status"]) if row is not None else "assumed",
+                                      f"{tables['14'].attrs['file']}: Seasonal drainage" if row is not None
+                                      else "no row in table 14: steady drainage", "")
+    shares, statuses = [], set()
+    for m in MONTHS:
+        r12 = _find_row(tables["12"], "parameter", f"Drainage share in {m}")
+        v = num(r12[_value_col(tables["12"])]) if r12 is not None else None
+        if v is None or v < 0:
+            shares = []
+            break
+        shares.append(v)
+        statuses.add(status_class(r12["status"]))
+    if shares and sum(shares) > 0:
+        d["drainage_monthly_share"] = [x / sum(shares) for x in shares]
+        prov["drainage_monthly_share"] = _prov([round(x, 4) for x in d["drainage_monthly_share"]],
+                                               "assumed" if "assumed" in statuses or len(statuses) != 1 else statuses.pop(),
+                                               f"{tables['12'].attrs['file']}: Drainage share in January to December",
+                                               "fraction of the year")
     row = _find_row(tables["14"], "setting", "Glass rate law")
     txt = (row["value"] if row is not None else "").lower()
     d["glass_rate_law"] = "gislason_oelkers_2003" if "gislason" in txt else "approximate"

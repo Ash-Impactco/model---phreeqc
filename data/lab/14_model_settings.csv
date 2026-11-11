@@ -20,3 +20,5 @@ Aluminium phase controlling soil-water Al,amorphous,,assumed,"Andosol acidity op
 Half-point pH of the variable charge,,pH,assumed,Andosol acidity option only: blank means midway between the soil pH and 7
 Reactive Al hydroxide in the soil,1.0,mol per kg soil water,assumed,Andosol acidity option only: large enough not to run out; compare with oxalate-extractable Al when measured
 Glass rate law,Gislason & Oelkers 2003,,assumed,"full law with Al3+ dependence, per geometric area (no roughness factor). The other option, approximate, is the older constant rate with the roughness factor"
+Seasonal drainage,off,,model choice,"on: drainage follows the monthly shares in table 12; off: steady drainage. Off by default because the monthly pattern is only an assumption"
+Start month of the run,10,month number,plan,spreading window is September to early October (table 11)
