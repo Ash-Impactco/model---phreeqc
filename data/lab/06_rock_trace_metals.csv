@@ -1,0 +1,15 @@
+sample_id,element,mg_kg,detection_limit_mg_kg,status,method,notes
+TV-FINES-01,Ni,,,TO MEASURE,4-acid or fusion digest + ICP-MS,Isometric feedstock v1.2 requirement
+TV-FINES-01,Cr,,,TO MEASURE,4-acid or fusion digest + ICP-MS,Isometric feedstock v1.2 requirement; Cr seen in SEM-EDS spots
+TV-FINES-01,Co,,,TO MEASURE,4-acid or fusion digest + ICP-MS,Isometric feedstock v1.2 requirement
+TV-FINES-01,Cu,,,TO MEASURE,4-acid or fusion digest + ICP-MS,Isometric feedstock v1.2 requirement
+TV-FINES-01,Zn,,,TO MEASURE,4-acid or fusion digest + ICP-MS,Isometric feedstock v1.2 requirement
+TV-FINES-01,Cd,,,TO MEASURE,4-acid or fusion digest + ICP-MS,Isometric feedstock v1.2 requirement
+TV-FINES-01,Pb,,,TO MEASURE,4-acid or fusion digest + ICP-MS,Isometric feedstock v1.2 requirement
+TV-FINES-01,As,,,TO MEASURE,4-acid or fusion digest + ICP-MS,Isometric feedstock v1.2 requirement
+TV-FINES-01,Hg,,,TO MEASURE,4-acid or fusion digest + ICP-MS,Isometric feedstock v1.2 requirement
+TV-FINES-01,V,,,TO MEASURE,4-acid or fusion digest + ICP-MS,Isometric feedstock v1.2 requirement
+TV-FINES-01,Mn,,,TO MEASURE,4-acid or fusion digest + ICP-MS,Isometric feedstock v1.2 requirement
+TV-FINES-01,"Radioactivity (gamma: K-40, Th-232, U-238)",,,TO MEASURE,gamma spectrometry,extra test for quarry fines (Isometric)
+TV-FINES-01,Leaching test,,,TO MEASURE,EN 12457 or equivalent,extra test for quarry fines (Isometric)
+TV-FINES-01,Elemental deportment (where metals sit),,,TO MEASURE,SEM/EPMA or sequential extraction,extra test for quarry fines (Isometric)

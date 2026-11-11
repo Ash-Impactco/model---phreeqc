@@ -1,0 +1,11 @@
+setting,value,unit,status,notes
+Database,llnl.dat,,,phreeqc.dat lacks basalt silicates
+Column depth,50,cm,assumed,
+Cell size,10,cm,model choice,"5 cm in first run, same results"
+Mixing depth,20,cm,plan,
+Surface roughness,5,x geometric,assumed,replace with BET
+Field-to-lab rate factor,0.1,,assumed,range 0.01-1; largest uncertainty
+Fe2+/Fe total,0.8,,assumed,measure FeO
+Soil acidity pool,CEC pH7 minus bases,,assumed,or effective CEC with KCl acidity
+Soil-solution Ca used for calibration,0.1,mmol/L,assumed,
+CO2 per eq alkalinity,1,mol/eq,assumption,bicarbonate at pH < 8

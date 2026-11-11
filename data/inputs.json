@@ -1,0 +1,202 @@
+{
+ "_notes": "All inputs for the Ilha Carbon ERW PHREEQC model. Values marked stand-in come from other sites and must be replaced: rock = TECHNOVIA fines analysis, soil = Lomba da Maia screening (late Nov 2026).",
+ "feedstock": {
+  "name": "Brita 2, Marques Britas 0/4 mm fines (stand-in for TECHNOVIA)",
+  "status": "measured, stand-in",
+  "oxides_wt_pct": {
+   "SiO2": 47.44,
+   "Al2O3": 14.05,
+   "Fe2O3": 13.02,
+   "CaO": 10.05,
+   "MgO": 6.92,
+   "TiO2": 3.87,
+   "Na2O": 3.37,
+   "K2O": 2.0
+  },
+  "other_wt_pct": {
+   "MnOx": 0.09,
+   "CO2": 0.05,
+   "LOI": "<0.05"
+  },
+  "fe2_fraction_of_total_fe": 0.8,
+  "density_g_m3": 2900000.0,
+  "sem_eds_note": "3 spot analyses only (semi-quantitative). Cr-bearing and P-rich phases seen. Not bulk composition."
+ },
+ "grain_size_bins": {
+  "as_is_0-4mm": {
+   "status": "partly measured (11% < 63 um); rest of split assumed",
+   "bins": [
+    [
+     0.11,
+     3e-05
+    ],
+    [
+     0.14,
+     0.00015
+    ],
+    [
+     0.25,
+     0.0006
+    ],
+    [
+     0.25,
+     0.0015
+    ],
+    [
+     0.25,
+     0.003
+    ]
+   ]
+  },
+  "milled_p80_1mm": {
+   "status": "assumed milling outcome",
+   "bins": [
+    [
+     0.25,
+     3e-05
+    ],
+    [
+     0.25,
+     0.00015
+    ],
+    [
+     0.5,
+     0.0006
+    ]
+   ]
+  },
+  "milled_p80_100um": {
+   "status": "assumed milling outcome",
+   "bins": [
+    [
+     0.5,
+     3e-05
+    ],
+    [
+     0.5,
+     0.0001
+    ]
+   ]
+  }
+ },
+ "soils": {
+  "A_Moreira": {
+   "label": "Plot A (Sanguinho, Moreira pasture)",
+   "status": "measured Jan 2024, stand-in",
+   "pH": 5.8,
+   "cec": 23.61,
+   "ca": 3.54,
+   "mg": 1.74,
+   "k": 1.2,
+   "om_pct": 2.62,
+   "bs_pct": 28.13
+  },
+  "B_TerraRiba": {
+   "label": "Plot B (Sanguinho, Terra da Riba pasture)",
+   "status": "measured Jan 2024, stand-in",
+   "pH": 5.2,
+   "cec": 9.16,
+   "ca": 0.92,
+   "mg": 0.3,
+   "k": 0.97,
+   "om_pct": 4.21,
+   "bs_pct": 25.88
+  }
+ },
+ "defaults": {
+  "application_t_ha": 40,
+  "mix_depth_cm": 20,
+  "column_depth_cm": 50,
+  "cell_cm": 10,
+  "bulk_density_kg_m3": 800,
+  "water_content": 0.45,
+  "drainage_mm_yr": 900,
+  "log_pco2": -2.0,
+  "temp_c": 17.0,
+  "roughness": 5.0,
+  "field_factor": 0.1,
+  "glass_frac": 0.0,
+  "acidity_mode": "pH7_CEC",
+  "effective_acidity_cmol_kg": 1.0,
+  "soil_solution_ca_mol": 0.0001,
+  "years": 10
+ },
+ "rates_palandri_kharaka_2004": {
+  "_cols": "logk_acid25 (mol/m2/s), Ea_acid (kJ/mol), n_acid, logk_neutral25, Ea_neutral",
+  "Plag": [
+   -7.87,
+   42.1,
+   0.626,
+   -10.91,
+   45.2
+  ],
+  "Kfs": [
+   -10.06,
+   51.7,
+   0.5,
+   -12.41,
+   38.0
+  ],
+  "Cpx": [
+   -6.36,
+   96.1,
+   0.71,
+   -11.11,
+   40.6
+  ],
+  "Fo": [
+   -6.85,
+   67.2,
+   0.47,
+   -10.64,
+   79.0
+  ],
+  "Fa": [
+   -4.8,
+   94.4,
+   1.0,
+   -12.8,
+   94.4
+  ],
+  "Gls": [
+   -99.0,
+   0.0,
+   0.0,
+   -9.5,
+   25.5
+  ]
+ },
+ "references": [
+  "Palandri J.L. & Kharaka Y.K. (2004) USGS Open-File Report 2004-1068",
+  "Gislason S.R. & Oelkers E.H. (2003) Geochim. Cosmochim. Acta 67, 3817-3832",
+  "Renforth P. (2012) Int. J. Greenhouse Gas Control 10, 229-243",
+  "Parkhurst D.L. & Appelo C.A.J. (2013) PHREEQC version 3, USGS Techniques and Methods 6-A43",
+  "Isometric, Enhanced Weathering in Agriculture v1.3; Rock and Mineral Feedstock Characterization v1.2"
+ ],
+ "isometric": {
+  "_notes": "Accounting follows Isometric Enhanced Weathering in Agriculture v1.3, Equations 1, 2 and 4. Model forecast only: v1.3 List 1 quantification must be soil- or porewater-based measurement.",
+  "nfz_depth_cm": 20,
+  "eta_river_ocean": 0.85,
+  "eta_status": "ASSUMED placeholder - replace with the river/ocean retention factor required by Isometric for this catchment",
+  "biomass_loss_status": "not modelled (0); add measured Ca, Mg, K removal in harvested grass"
+ },
+ "emissions": {
+  "_notes": "ASSUMED placeholder factors for a first life-cycle estimate. Replace with measured fuel and electricity use and Isometric-accepted emission factors.",
+  "haul_distance_km": 25.8,
+  "truck_payload_t": 20,
+  "diesel_l_per_km_loaded": 0.4,
+  "diesel_l_per_km_empty": 0.3,
+  "spreading_diesel_l_per_t": 0.5,
+  "diesel_kgco2e_per_l": 2.68,
+  "milling_kwh_per_t": {
+   "as_is_0-4mm": 0,
+   "milled_p80_1mm": 5,
+   "milled_p80_100um": 30
+  },
+  "grid_kgco2e_per_kwh": 0.45,
+  "quarrying_kgco2e_per_t": 0.0,
+  "quarrying_status": "0 assumes fines are an unallocated quarry by-product; must be justified in the PDD",
+  "other_project_t_co2e": 2.0,
+  "other_status": "sampling trips, lab shipping, staff travel - rough allowance for the whole 100 ha project"
+ }
+}

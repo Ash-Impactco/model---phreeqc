@@ -1,0 +1,10 @@
+phreeqpython==1.6.2
+streamlit>=1.40
+plotly>=5.20
+pandas>=2.0
+numpy>=1.26
+matplotlib>=3.8
+flopy>=3.9
+modflowapi
+phreeqcrm
+mf6rtm>=0.6
