@@ -1,0 +1,10 @@
+{
+  "S1 Base: soil A, 0/4 mm": {},
+  "S2 Soil B, 0/4 mm": {"soil": "B_TerraRiba"},
+  "S3 Milled p80 1 mm": {"psd": "milled_p80_1mm"},
+  "S4 Milled p80 100 um": {"psd": "milled_p80_100um"},
+  "S5 Base + 20% glass": {"set": {"glass_frac": 0.2}},
+  "S6 Small acidity pool": {"set": {"acidity_mode": "effective"}},
+  "S7 Optimistic: small pool, 100 um, 20% glass, field factor 0.3": {"psd": "milled_p80_100um", "set": {"acidity_mode": "effective", "glass_frac": 0.2, "field_factor": 0.3}},
+  "S8 Upper bound: as S7 at lab rates": {"psd": "milled_p80_100um", "set": {"acidity_mode": "effective", "glass_frac": 0.2, "field_factor": 1.0}}
+}

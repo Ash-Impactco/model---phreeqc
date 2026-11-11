@@ -1,0 +1,13 @@
+item,value,unit,status,notes
+Haul distance quarry to field,25.8,km,calculated,OSRM route
+Truck payload,20,t,assumed,confirm with TECHNOVIA
+"Diesel, loaded",0.4,L/km,assumed,replace with fleet data
+"Diesel, empty return",0.3,L/km,assumed,
+Spreading diesel,0.5,L per t spread,assumed,replace with contractor data
+Diesel emission factor,2.68,kg CO2e/L,assumed (combustion only),Isometric may require well-to-wheel
+"Milling energy, 0/4 mm as supplied",0,kWh/t,assumed,
+"Milling energy, p80 1 mm",5,kWh/t,assumed,replace with TECHNOVIA milling trials
+"Milling energy, p80 100 um",30,kWh/t,assumed,replace with milling trials
+"Grid emission factor, São Miguel",0.45,kg CO2e/kWh,assumed,replace with EDA / official factor
+Quarrying allocation to fines,0,kg CO2e/t,assumed,"by-product, no allocation; must be justified"
+Other project emissions,2.0,t CO2e per 100 ha,assumed,"sampling trips, lab shipping, travel"

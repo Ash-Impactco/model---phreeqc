@@ -1,0 +1,11 @@
+parameter,why it matters for the model,preferred method,priority,status
+pH H2O and pH KCl/CaCl2,starting acidity; KCl gap shows exchangeable acidity,ISO 10390,high,Sanguinho: some measured; Lomba da Maia: to measure
+CEC at pH 7 and effective CEC,size of the exchange pool and acidity buffer (biggest model lever),ammonium acetate pH 7; ECEC by unbuffered extraction,high,to measure
+"Exchangeable Ca, Mg, K, Na",baseline for detecting weathering,ammonium acetate + AAS/ICP,high,to measure
+Exchangeable acidity / Al (KCl),acid that consumes rock alkalinity,1 M KCl titration,high,to measure
+"Organic matter, TOC, total C",soil carbon baseline (Isometric),Walkley-Black / dry combustion,high,to measure
+Texture,hydrology and surface area,pipette / laser,medium,to measure
+Bulk density,converts concentrations to kg/ha,core method,high,to measure
+"Ti, Zr (total)",immobile tracers for mass-balance (Ca+Mg)/Ti,XRF on soil,high,to measure
+"Trace metals (Ni, Cr, Co, Cd, Pb, As)",baseline before rock is spread,aqua regia + ICP-MS,high,to measure
+"Soil water alkalinity, DIC",direct check of bicarbonate leaving,lysimeters / suction cups,phase 2,planned
