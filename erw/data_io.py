@@ -646,7 +646,48 @@ def lab_defaults(lab_dir=LAB):
             prov[f"isometric.{key}"] = _prov(v, status_class(row["status"]), f"{df.attrs['file']}: {label}", unit)
         elif key in iso:
             prov[f"isometric.{key}"] = _prov(iso[key], "assumed", "fallback data/inputs.json", unit)
+    # Near-Field Zone: the deeper of the minimum depth and tillage depth + margin, on a cell boundary
+    get14 = lambda label: (lambda r: num(r["value"]) if r is not None else None)(_find_row(tables["14"], "setting", label))
+    till, margin = get14("Tillage depth"), get14("Near-Field Zone margin below tillage depth")
+    nfz_min = float(iso.get("nfz_depth_cm", 20))
+    if till is not None and margin is not None:
+        nfz = max(nfz_min, till + margin)
+        cell = float(d.get("cell_cm", 10))
+        nfz_cells = math.ceil(nfz / cell - 1e-9)
+        iso.update(nfz_depth_cm=nfz_cells * cell, tillage_depth_cm=till, nfz_margin_cm=margin, nfz_min_cm=nfz_min)
+        prov["isometric.nfz_depth_cm"] = _prov(
+            iso["nfz_depth_cm"], "plan",
+            f"{tables['14'].attrs['file']}: deeper of {nfz_min:g} cm and tillage depth {till:g} cm + {margin:g} cm"
+            + ("" if nfz_cells * cell == nfz else f", rounded up to the {cell:g} cm cells"), "cm")
+    v = get14("Minimum control share of area")
+    if v is not None:
+        iso["control_min_pct"] = v
+        prov["isometric.control_min_pct"] = _prov(v, "plan", f"{tables['14'].attrs['file']}: Minimum control share of area", "% of area")
     return d, iso, prov
+
+
+def mc_parameters(lab_dir=LAB) -> list[dict]:
+    """Inputs varied in the Monte Carlo and tornado runs, with their ranges, from tables 14 and 12.
+    A row takes part when its `range` (table 14) or `range_tested` (table 12) cell holds a range."""
+    spec = [("14", "setting", "Field-to-lab rate factor", "field_factor", "range", 1.0),
+            ("14", "setting", "Surface roughness", "roughness", "range", 1.0),
+            ("14", "setting", "Glass fraction of the rock", "glass_frac", "range", 1.0),
+            ("12", "parameter", "Net drainage below root zone", "drainage_mm_yr", "range_tested", 1.0),
+            ("12", "parameter", "Soil log pCO2", "log_pco2", "range_tested", 1.0),
+            ("12", "parameter", "Mean soil temperature", "temp_c", "range_tested", 1.0)]
+    out = []
+    for tkey, col, label, key, rcol, factor in spec:
+        df = read_table(tkey, lab_dir)
+        row = _find_row(df, col, label)
+        if row is None or rcol not in df.columns:
+            continue
+        p = parse_value(row[rcol])
+        if p.qualifier != "range":
+            continue
+        dist = (row.get("distribution", "") or "uniform").strip().lower()
+        out.append(dict(key=key, label=label, low=p.low * factor, high=p.high * factor, distribution=dist,
+                        status=status_class(row["status"]), source=f"{df.attrs['file']}: {label}, range {row[rcol]}"))
+    return out
 
 
 def rate_parameters(lab_dir=LAB):

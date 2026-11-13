@@ -817,6 +817,9 @@ def run_stream(cfg):
             pH_rock=R[:, C["pH"]].tolist(), pH_ctrl=Cc[:, C["pH"]].tolist(),
             bs_rock=(ex(R) / cec_eq(R) * 100).tolist(), bs_ctrl=(ex(Cc) / cec_eq(Cc) * 100).tolist(),
             alk_rock=(R[:, C["alk"]] * 1e3).tolist(), alk_ctrl=(Cc[:, C["alk"]] * 1e3).tolist(),
+            # exchangeable Ca + Mg, cmol(+)/kg
+            excamg_rock=((2 * R[:, C["caX2"]] + 2 * R[:, C["mgX2"]]) / soil_per_kgw * 100).tolist(),
+            excamg_ctrl=((2 * Cc[:, C["caX2"]] + 2 * Cc[:, C["mgX2"]]) / soil_per_kgw * 100).tolist(),
             exal_rock=(R[:, C["alX"]] / soil_per_kgw * 100).tolist(),          # exchangeable Al, cmol(+)/kg
             exal_ctrl=(Cc[:, C["alX"]] / soil_per_kgw * 100).tolist()))
         # ---- Isometric EWA v1.3 style accounting (Equation 4, NFZ), cumulative to this year, t CO2e/ha

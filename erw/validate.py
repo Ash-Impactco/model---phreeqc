@@ -261,6 +261,21 @@ def check_co2_potential(rock: pd.DataFrame, table07: pd.DataFrame) -> list[Findi
     return out
 
 
+# ---------------------------------------------------------------- 8. control area
+def check_control_area(site: pd.DataFrame, settings: pd.DataFrame) -> list[Finding]:
+    """The untreated control must be at least the minimum share of the area (Isometric EWA v1.3, Eq. 9)."""
+    f = _file(site, "11")
+    row = site[site["item"].str.lower() == "untreated control"]
+    need = settings[settings["setting"].str.lower() == "minimum control share of area"]
+    have = num(row.iloc[0]["value"]) if len(row) else None
+    minimum = num(need.iloc[0]["value"]) if len(need) else None
+    if have is None or minimum is None:
+        return [Finding("control area", "info", f, "Untreated control", "control share or its minimum is not filled in")]
+    ok = have >= minimum - 1e-9
+    return [Finding("control area", "pass" if ok else "fail", f, "Untreated control",
+                    f"planned control {have:g} % of the area, minimum {minimum:g} %")]
+
+
 # ---------------------------------------------------------------- run everything
 def validate_all(lab_dir=data_io.LAB) -> list[Finding]:
     t = {k: data_io.read_table(k, lab_dir) for k in ("01", "02", "03", "05", "06", "07", "08", "09", "11", "12", "14", "18")}
@@ -285,6 +300,7 @@ def validate_all(lab_dir=data_io.LAB) -> list[Finding]:
     out += check_duplicate_ids(t["06"], ["element"])
     out += check_known_issues(t["01"], t["08"])
     out += check_co2_potential(t["01"], t["07"])
+    out += check_control_area(t["11"], t["14"])
     return out
 
 
@@ -337,7 +353,8 @@ def report_markdown(findings: list[Finding], lab_dir=data_io.LAB) -> str:
               "5. No repeated sample ids.",
               "6. Known open questions from `data/lab/00_README.md` (potassium for Moreira and Terra da Riba, "
               "Mn2O4 against Mn3O4).",
-              "7. CO2 potential in table 07 recomputed from the oxides in table 01.", ""]
+              "7. CO2 potential in table 07 recomputed from the oxides in table 01.",
+              "8. Planned control area at or above the minimum share (Isometric EWA v1.3, Equation 9).", ""]
     return "\n".join(lines)
 
 

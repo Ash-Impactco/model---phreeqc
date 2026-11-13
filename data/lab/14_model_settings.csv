@@ -1,24 +1,27 @@
-setting,value,unit,status,notes
-Database,llnl.dat,,,phreeqc.dat lacks basalt silicates
-Column depth,50,cm,assumed,
-Cell size,10,cm,model choice,"5 cm in first run, same results"
-Mixing depth,20,cm,plan,
-Surface roughness,5,x geometric,assumed,replace with BET
-Field-to-lab rate factor,0.1,,assumed,range 0.01-1; largest uncertainty
-Fe2+/Fe total,0.8,,assumed,measure FeO
-Soil acidity pool,CEC pH7 minus bases,,assumed,"other options: effective CEC (bases plus KCl acidity), or Andosol (exchangeable Al plus variable charge)"
-Soil-solution Ca used for calibration,0.1,mmol/L,assumed,
-CO2 per eq alkalinity,1,mol/eq,assumption,bicarbonate at pH < 8
-Glass fraction of the rock,0,fraction,assumed,unknown until XRD with amorphous quantification; scenarios test 0 to 0.2
-Exchangeable (KCl) acidity when not measured,1.0,cmol(+)/kg,assumed,size of the small acidity pool; replace with 1 M KCl titration
-Exchangeable Na share of CEC when not measured,0.01,fraction,assumed,the two Sanguinho reports with Na give 0.009
-Simulation length,10,years,model choice,
-Diameter assumed for the fraction below the smallest sieve,30,um,assumed,no size data below 63 um; this controls most of the surface area; replace with laser PSD
-Near-Field Zone depth,20,cm,per protocol,Isometric EWA v1.3: deeper of 20 cm or tillage depth + 5-10 cm
-eta RiverOcean,0.85,,assumed,placeholder (see 17)
-Aluminium phase controlling soil-water Al,amorphous,,assumed,"Andosol acidity option only: amorphous Al(OH)3 (log K 10.8) or gibbsite (llnl.dat). Amorphous fits the database Al exchange constant better for the Sanguinho soils"
-Half-point pH of the variable charge,,pH,assumed,Andosol acidity option only: blank means midway between the soil pH and 7
-Reactive Al hydroxide in the soil,1.0,mol per kg soil water,assumed,Andosol acidity option only: large enough not to run out; compare with oxalate-extractable Al when measured
-Glass rate law,Gislason & Oelkers 2003,,assumed,"full law with Al3+ dependence, per geometric area (no roughness factor). The other option, approximate, is the older constant rate with the roughness factor"
-Seasonal drainage,off,,model choice,"on: drainage follows the monthly shares in table 12; off: steady drainage. Off by default because the monthly pattern is only an assumption"
-Start month of the run,10,month number,plan,spreading window is September to early October (table 11)
+setting,value,unit,status,notes,range,distribution
+Database,llnl.dat,,,phreeqc.dat lacks basalt silicates,,
+Column depth,50,cm,assumed,,,
+Cell size,10,cm,model choice,"5 cm in first run, same results",,
+Mixing depth,20,cm,plan,,,
+Surface roughness,5,x geometric,assumed,replace with BET,1-20,log-uniform
+Field-to-lab rate factor,0.1,,assumed,range 0.01-1; largest uncertainty,0.01-1,log-uniform
+Fe2+/Fe total,0.8,,assumed,measure FeO,,
+Soil acidity pool,CEC pH7 minus bases,,assumed,"other options: effective CEC (bases plus KCl acidity), or Andosol (exchangeable Al plus variable charge)",,
+Soil-solution Ca used for calibration,0.1,mmol/L,assumed,,,
+CO2 per eq alkalinity,1,mol/eq,assumption,bicarbonate at pH < 8,,
+Glass fraction of the rock,0,fraction,assumed,unknown until XRD with amorphous quantification; scenarios test 0 to 0.2,0-0.2,uniform
+Exchangeable (KCl) acidity when not measured,1.0,cmol(+)/kg,assumed,size of the small acidity pool; replace with 1 M KCl titration,,
+Exchangeable Na share of CEC when not measured,0.01,fraction,assumed,the two Sanguinho reports with Na give 0.009,,
+Simulation length,10,years,model choice,,,
+Diameter assumed for the fraction below the smallest sieve,30,um,assumed,no size data below 63 um; this controls most of the surface area; replace with laser PSD,,
+Near-Field Zone depth,20,cm,per protocol,"minimum depth. The model uses the deeper of this and tillage depth plus the margin below (Isometric EWA v1.3)",,
+eta RiverOcean,0.85,,assumed,placeholder (see 17),,
+Aluminium phase controlling soil-water Al,amorphous,,assumed,"Andosol acidity option only: amorphous Al(OH)3 (log K 10.8) or gibbsite (llnl.dat). Amorphous fits the database Al exchange constant better for the Sanguinho soils",,
+Half-point pH of the variable charge,,pH,assumed,Andosol acidity option only: blank means midway between the soil pH and 7,,
+Reactive Al hydroxide in the soil,1.0,mol per kg soil water,assumed,Andosol acidity option only: large enough not to run out; compare with oxalate-extractable Al when measured,,
+Glass rate law,Gislason & Oelkers 2003,,assumed,"full law with Al3+ dependence, per geometric area (no roughness factor). The other option, approximate, is the older constant rate with the roughness factor",,
+Seasonal drainage,off,,model choice,"on: drainage follows the monthly shares in table 12; off: steady drainage. Off by default because the monthly pattern is only an assumption",,
+Start month of the run,10,month number,plan,spreading window is September to early October (table 11),,
+Tillage depth,0,cm,plan,"pasture: rock spread on the surface, no tillage. Set the tillage depth if the rock is worked in",,
+Near-Field Zone margin below tillage depth,10,cm,per protocol,protocol asks for 5 to 10 cm below the tillage depth,,
+Minimum control share of area,2.5,% of area,per protocol,"Isometric EWA v1.3 Equation 9 gives the minimum; about 2.5 % was worked out for this project. Recheck with the final area",,

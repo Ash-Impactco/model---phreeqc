@@ -1,20 +1,20 @@
-parameter,value_used_in_model,range_tested,unit,status,source to obtain
-Mean soil temperature,17,10-22,°C,assumed,IPMA / Azores climate normals
-Annual rainfall (NE São Miguel),,,mm/yr,TO FIND,IPMA station data; DROTRH Azores
-Evapotranspiration,,,mm/yr,TO FIND,IPMA; FAO-56 estimate
-Net drainage below root zone,900,500-1400,mm/yr,assumed,rainfall minus ET
-Soil log pCO2,-2.0,-2.5 to -1.5,log atm,assumed,literature for grassland soils
-Soil water content,0.45,,m3/m3,assumed,andosol typical; measure
-Soil bulk density,0.8,0.6-1.0,g/cm3,assumed,measure in screening
-Drainage share in January,0.125,,fraction of the year,assumed,"assumed two-level pattern: 75 % of the drainage from October to March. Not station data. Replace with monthly rainfall minus evapotranspiration (IPMA normals, FAO-56) for north-east São Miguel"
-Drainage share in February,0.125,,fraction of the year,assumed,as January
-Drainage share in March,0.125,,fraction of the year,assumed,as January
-Drainage share in April,0.0417,,fraction of the year,assumed,as January
-Drainage share in May,0.0417,,fraction of the year,assumed,as January
-Drainage share in June,0.0417,,fraction of the year,assumed,as January
-Drainage share in July,0.0417,,fraction of the year,assumed,as January
-Drainage share in August,0.0417,,fraction of the year,assumed,as January
-Drainage share in September,0.0417,,fraction of the year,assumed,as January
-Drainage share in October,0.125,,fraction of the year,assumed,as January
-Drainage share in November,0.125,,fraction of the year,assumed,as January
-Drainage share in December,0.125,,fraction of the year,assumed,as January
+parameter,value_used_in_model,range_tested,unit,status,source to obtain,distribution
+Mean soil temperature,17,10-22,°C,assumed,IPMA / Azores climate normals,uniform
+Annual rainfall (NE São Miguel),,,mm/yr,TO FIND,IPMA station data; DROTRH Azores,
+Evapotranspiration,,,mm/yr,TO FIND,IPMA; FAO-56 estimate,
+Net drainage below root zone,900,500-1400,mm/yr,assumed,rainfall minus ET,uniform
+Soil log pCO2,-2.0,-2.5 to -1.5,log atm,assumed,literature for grassland soils,uniform
+Soil water content,0.45,,m3/m3,assumed,andosol typical; measure,
+Soil bulk density,0.8,0.6-1.0,g/cm3,assumed,measure in screening,
+Drainage share in January,0.125,,fraction of the year,assumed,"assumed two-level pattern: 75 % of the drainage from October to March. Not station data. Replace with monthly rainfall minus evapotranspiration (IPMA normals, FAO-56) for north-east São Miguel",
+Drainage share in February,0.125,,fraction of the year,assumed,as January,
+Drainage share in March,0.125,,fraction of the year,assumed,as January,
+Drainage share in April,0.0417,,fraction of the year,assumed,as January,
+Drainage share in May,0.0417,,fraction of the year,assumed,as January,
+Drainage share in June,0.0417,,fraction of the year,assumed,as January,
+Drainage share in July,0.0417,,fraction of the year,assumed,as January,
+Drainage share in August,0.0417,,fraction of the year,assumed,as January,
+Drainage share in September,0.0417,,fraction of the year,assumed,as January,
+Drainage share in October,0.125,,fraction of the year,assumed,as January,
+Drainage share in November,0.125,,fraction of the year,assumed,as January,
+Drainage share in December,0.125,,fraction of the year,assumed,as January,
