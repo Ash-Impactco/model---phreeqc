@@ -1,0 +1,69 @@
+section,parameter,value,status,note
+site,site_dir,site_data,design,"QGIS layers exported from Lomba_da_Maia_Plots_v2 (EPSG:5015 for rasters, WGS84 for vectors)"
+site,candidate_units,"[""U3"", ""U4"", ""U5""]",design,Contiguous pilot units rated Easy/Workable with slope p90 under 20%. Change here to test other areas
+site,max_plot_slope_pct,20,design,"Mean slope limit per plot, for safe spreading and even runoff"
+site,max_cell_slope_pct,30,design,Pixels steeper than this are excluded
+site,drainage_buffer_m,10,design,No-spread buffer either side of drainage lines (4 ha+ catchment)
+site,plot_length_m,80,design,Square plots pack best into the open ground of U3 to U5
+site,plot_width_m,80,design,Five 16 m spreading bouts; plots are 0.64 ha gross
+site,alley_m,8,design,Untreated strip between plots
+site,net_inset_m,8,design,"Sampling only inside the plot minus this inset, to avoid edge drift"
+site,seed,2026,design,Random seed for rate allocation; record it in the trial protocol
+design,rates_t_ha,"[0, 20, 40, 80]",design,Dry-mass application rates
+design,blocks,4,design,Blocks laid along the elevation gradient. 3 blocks = 12 plots (minimum); 4 = 16 plots (recommended if screening variability is medium or high)
+design,contingency_frac,0.1,design,Extra feedstock ordered
+design,months,30,design,Grant period
+design,sampling_months,"[0, 6, 12, 18, 24, 30]",design,Soil sampling rounds; 0 = baseline before spreading
+design,cores_per_composite,15,design,As Juan's screening protocol v1.1
+design,individual_cores_per_plot,6,design,Cores analysed separately each round for the tracer mass balance and its uncertainty
+design,depths_cm,"[""0-10"", ""10-20"", ""20-30""]",design,"0-10 every round; 10-20 and 20-30 at 0, 12 and 30 months"
+design,truck_payload_t_wet,25,placeholder,Confirm with haulier
+design,catch_trays_per_plot,5,design,Application-rate verification at spreading
+climate,mean_temp_C,15.0,placeholder,About 15 C at 350-450 m on the NE coast; replace with IPMA / CIIMAR or a farm logger
+climate,rain_mm_yr,1800,placeholder,NE Sao Miguel at trial elevation; replace with station data
+climate,aet_mm_yr,600,placeholder,Actual evapotranspiration of grazed pasture
+soil,pH_H2O,,missing,"Fill from inputs/soil_screening.csv (pH_H2O, mean of composites). Andosol under dairy pasture"
+soil,bulk_density_g_cm3,,missing,Fill from inputs/soil_screening.csv (bulk_density_g_cm3). Andosols are light (0.6 to 0.9)
+soil,mixing_depth_cm,10,design,"Surface application, no tillage: rock stays in the top 10 cm at first"
+soil,CEC_cmolc_kg,,missing,Fill from inputs/soil_screening.csv (CEC_cmolc_kg). From screening
+soil,base_saturation_frac,,missing,Fill from inputs/soil_screening.csv (base_saturation_pct). From screening
+soil,pH_buffer_cmolc_kg_pH,,missing,"Fill from inputs/soil_screening.csv (pH_buffer_cmolc_kg_pH, titration on composites). Andic soils buffer strongly"
+soil,acid_load_keq_ha_yr,,missing,"Fill from inputs/site_other.csv (acid_load_keq_ha_yr, from farm N and lime records). Net background acidity from N fertiliser and grazing after the farm's routine liming"
+soil,exchange_retention_frac,0.7,placeholder,Share of non-bicarbonate cations held on the exchange complex rather than leached with strong-acid anions
+soil,secondary_loss_frac,0.1,placeholder,Released cations lost to secondary minerals and clays
+soil,plant_uptake_frac,0.05,placeholder,Ca and Mg removed in grazed or cut grass
+soil,pKa1_carbonic,6.35,literature,H2CO3*/HCO3- at 25 C
+soil,elements,,missing,Fill from inputs/soil_screening.csv (total elements: CaO_pct ... V_ppm). Soil total element concentrations (fusion XRF / ICP)
+soil,heterogeneity_cv,,missing,"Fill from inputs/soil_cores.csv (individually analysed cores, grouped). Core-to-core coefficient of variation within a plot"
+soil,between_plot_sd,,missing,Derived by run_all.py from inputs/soil_screening.csv (0.5 x between-composite SD; needs 4 or more composites). SD of the 30-month change between plots treated alike
+soil,analytical_cv,,missing,"Fill from inputs/site_other.csv (analytical_cv, from lab duplicates and reference materials). Lab precision"
+feedstock,oxides_pct,,missing,"Fill from inputs/feedstock_xrf.csv (oxides in wt%). Tecnovia fines, lab XRF"
+feedstock,inorganic_C_pct,,missing,Fill from inputs/feedstock_other.csv (inorganic_C_pct). Carbonate C
+feedstock,total_S_pct,,missing,Fill from inputs/feedstock_other.csv (total_S_pct). Sulfide S can generate acidity (2 eq per mol S)
+feedstock,trace_ppm,,missing,"Fill from inputs/feedstock_xrf.csv (trace elements in ppm, ICP-MS)"
+feedstock,moisture_wet_frac,,missing,"Fill from inputs/feedstock_other.csv (moisture_wet_frac). Water content, ISO 17892-1, wet basis"
+feedstock,mineral_mode_wt_frac,,missing,Fill from inputs/feedstock_xrd.csv. Quantitative XRD with glass by difference
+feedstock,psd_bins_mm,"[[0.002, 0.063], [0.063, 0.125], [0.125, 0.25], [0.25, 0.5], [0.5, 1.0], [1.0, 2.0], [2.0,...",design,Sieve bins
+feedstock,psd_mass_frac,,missing,Fill from inputs/feedstock_psd.csv. Unmilled 0-4 mm quarry fines
+feedstock,roughness,7,literature,Reactive / geometric surface ratio. BET will refine this
+kinetics,_source,Palandri and Kharaka (2004) USGS OFR 2004-1068 for crystalline phases; basaltic glass approximated from Gislason and Oelkers (2003),literature,"Rate = k_acid * aH^n + k_neutral, Arrhenius-corrected to site temperature"
+kinetics,minerals,"{""olivine"": {""logk_acid"": -6.85, ""n_acid"": 0.47, ""Ea_acid"": 67.2, ""logk_neut"": -10.64, ""Ea...",literature,Glass values are an approximation: flag for Juan
+kinetics,field_factor,"{""low"": 0.2, ""central"": 1.0, ""high"": 3.0}",placeholder,"Lab-to-field scaling (wetting, contact, armouring). Calibrate with mesocosms and the first field rounds"
+kinetics,downstream_retention,0.86,literature,"Share of exported bicarbonate alkalinity that stays as stored carbon after river and ocean re-equilibration; Isometric uses a site-specific deduction, confirm the value used"
+kinetics,projection_years,10,design,Longer horizon for context only
+emissions,haul_km,26,placeholder,"Rabo de Peixe quarry to Lomba da Maia, one way"
+emissions,truck_kgCO2e_per_tkm,0.12,placeholder,Loaded haul including empty return
+emissions,loading_kgCO2e_per_t,0.4,placeholder,Loader at quarry
+emissions,spreading_kgCO2e_per_t,0.8,placeholder,Tractor and spreader
+emissions,quarry_allocation_kgCO2e_per_t,0.0,placeholder,Zero only if fines are a by-product not produced for sale; depends on Tecnovia's fate-of-fines answer and Isometric allocation rules
+limits,soil_limits_mg_kg,"{""pH<=5.5"": {""Cd"": 0.5, ""Cu"": 20, ""Ni"": 15, ""Pb"": 50, ""Zn"": 60, ""Hg"": 0.1, ""Cr"": 30}, ""5.5...",placeholder,"Portuguese soil limit values for sludge application (Decreto-Lei 276/2009, Annex I) used as a screening reference only. Confirm with Juan and the regional authority which thresholds apply to rock dust; volcanic soils can exceed Ni and Cr naturally"
+mesocosm,column_diameter_cm,15,design,
+mesocosm,soil_height_cm,30,design,"Repacked by horizon (0-10, 10-20, 20-30) from the trial area"
+mesocosm,rates_t_ha,"[0, 20, 40, 80, 160]",design,160 t/ha extends the curve beyond the field
+mesocosm,replicates,4,design,
+mesocosm,sand_controls,2,design,Basalt in acid-washed quartz sand at 40 t/ha: rock-only dissolution rate
+mesocosm,months,12,design,
+mesocosm,irrigation_mm_yr,1200,design,"Site drainage (rain minus AET), applied weekly as artificial rain"
+mesocosm,alkalinity_loq_meq_L,0.05,placeholder,Gran titration LOQ; confirm with lab
+uncertainty,n_monte_carlo,600,design,
+uncertainty,n_power_sims,300,design,

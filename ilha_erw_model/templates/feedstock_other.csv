@@ -1,0 +1,4 @@
+parameter,value,unit,method
+moisture_wet_frac,,fraction of wet mass,ISO 17892-1
+inorganic_C_pct,,wt%,
+total_S_pct,,wt%,dry combustion

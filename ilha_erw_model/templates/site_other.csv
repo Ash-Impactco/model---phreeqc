@@ -1,0 +1,6 @@
+parameter,value,unit,source
+acid_load_keq_ha_yr,,keq/ha/yr,farm N fertiliser and lime records
+analytical_cv,,fraction,lab duplicates and reference materials
+mean_temp_C,,C,optional: IPMA station or farm logger (otherwise the config placeholder is used)
+rain_mm_yr,,mm/yr,optional: as above
+aet_mm_yr,,mm/yr,optional: actual evapotranspiration of the pasture

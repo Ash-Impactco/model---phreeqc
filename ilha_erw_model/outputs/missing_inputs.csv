@@ -1,0 +1,18 @@
+parameter,missing,fill_with
+soil.pH_H2O,all,inputs/soil_screening.csv
+soil.bulk_density_g_cm3,all,inputs/soil_screening.csv
+soil.CEC_cmolc_kg,all,inputs/soil_screening.csv
+soil.base_saturation_frac,all,inputs/soil_screening.csv
+soil.pH_buffer_cmolc_kg_pH,all,inputs/soil_screening.csv
+soil.elements,all,inputs/soil_screening.csv
+soil.between_plot_sd,all,inputs/soil_screening.csv (4 or more composites)
+soil.heterogeneity_cv,all,inputs/soil_cores.csv
+soil.acid_load_keq_ha_yr,all,inputs/site_other.csv
+soil.analytical_cv,all,inputs/site_other.csv
+feedstock.oxides_pct,all,inputs/feedstock_xrf.csv
+feedstock.trace_ppm,all,inputs/feedstock_xrf.csv
+feedstock.inorganic_C_pct,all,inputs/feedstock_other.csv
+feedstock.total_S_pct,all,inputs/feedstock_other.csv
+feedstock.moisture_wet_frac,all,inputs/feedstock_other.csv
+feedstock.mineral_mode_wt_frac,all,inputs/feedstock_xrd.csv
+feedstock.psd_mass_frac,all,inputs/feedstock_psd.csv
