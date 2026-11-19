@@ -1,0 +1,23 @@
+month,item,samples
+0,"Composite 0-10 cm (15 cores): pH, exch. Ca Mg K Na Al, CEC, base sat., SOC, total N",16
+0,"Individual cores 0-10 cm (6/plot): total elements by fusion XRF/ICP (Ca, Mg, Na, K, Ti, Zr, trace metals), inorganic C",96
+0,Composites 10-20 and 20-30 cm: same as 0-10 composite plus total elements,32
+0,Bulk density rings 0-10 cm (2/plot),32
+6,"Composite 0-10 cm (15 cores): pH, exch. Ca Mg K Na Al, CEC, base sat., SOC, total N",16
+6,"Individual cores 0-10 cm (6/plot): total elements by fusion XRF/ICP (Ca, Mg, Na, K, Ti, Zr, trace metals), inorganic C",96
+12,"Composite 0-10 cm (15 cores): pH, exch. Ca Mg K Na Al, CEC, base sat., SOC, total N",16
+12,"Individual cores 0-10 cm (6/plot): total elements by fusion XRF/ICP (Ca, Mg, Na, K, Ti, Zr, trace metals), inorganic C",96
+12,Composites 10-20 and 20-30 cm: same as 0-10 composite plus total elements,32
+18,"Composite 0-10 cm (15 cores): pH, exch. Ca Mg K Na Al, CEC, base sat., SOC, total N",16
+18,"Individual cores 0-10 cm (6/plot): total elements by fusion XRF/ICP (Ca, Mg, Na, K, Ti, Zr, trace metals), inorganic C",96
+24,"Composite 0-10 cm (15 cores): pH, exch. Ca Mg K Na Al, CEC, base sat., SOC, total N",16
+24,"Individual cores 0-10 cm (6/plot): total elements by fusion XRF/ICP (Ca, Mg, Na, K, Ti, Zr, trace metals), inorganic C",96
+30,"Composite 0-10 cm (15 cores): pH, exch. Ca Mg K Na Al, CEC, base sat., SOC, total N",16
+30,"Individual cores 0-10 cm (6/plot): total elements by fusion XRF/ICP (Ca, Mg, Na, K, Ti, Zr, trace metals), inorganic C",96
+30,Composites 10-20 and 20-30 cm: same as 0-10 composite plus total elements,32
+30,Bulk density rings 0-10 cm (2/plot),32
+monthly,"Suction-cup lysimeters at 30 cm, 2 per plot in the 0 and 80 t/ha plots of each block (8 plots): alkalinity, pH, DIC, Ca Mg Na K, Si, NO3, SO4, Cl, EC",480
+quarterly,"Stream water W1 and W2 (context only, see water signal)",20
+each cut (about 6/yr),"Pasture yield (quadrats) and tissue Ca, Mg, K, P, Ni, Cr, Co (feed safety)",240
+spreading,Catch trays for application rate,60
+delivery,Feedstock moisture and XRF check per 50 t delivered,9

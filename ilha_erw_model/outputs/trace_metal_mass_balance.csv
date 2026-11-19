@@ -1,0 +1,11 @@
+element,soil_mg_kg,rock_mg_kg,limit_mg_kg,limit_class,after_20_t_ha,after_40_t_ha,after_80_t_ha,increase_at_80_pct,max_cumulative_t_ha
+Ni,60.0,120.0,15.0,pH<=5.5,61.56,63.04,65.78,9.6,background already above limit
+Cr,80.0,250.0,30.0,pH<=5.5,84.42,88.61,96.39,20.5,background already above limit
+Co,30.0,45.0,,pH<=5.5,30.39,30.76,31.45,4.8,no limit set
+Cu,40.0,60.0,20.0,pH<=5.5,40.52,41.01,41.93,4.8,background already above limit
+Zn,100.0,110.0,60.0,pH<=5.5,100.26,100.51,100.96,1.0,background already above limit
+Pb,15.0,4.0,50.0,pH<=5.5,14.71,14.44,13.94,-7.1,not limiting
+As,3.0,1.0,,pH<=5.5,2.95,2.9,2.81,-6.4,no limit set
+Cd,0.3,0.15,0.5,pH<=5.5,0.3,0.29,0.29,-4.8,not limiting
+Hg,0.05,0.01,0.1,pH<=5.5,0.05,0.05,0.05,-7.7,not limiting
+V,150.0,280.0,,pH<=5.5,153.38,156.58,162.53,8.4,no limit set

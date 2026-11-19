@@ -1,0 +1,3 @@
+plot,block,rate_t_ha,month,pH_H2O,exch_CaMg_cmolc_kg,total_CaMg_eq_kg
+P01,B1,80,0,5.40,7.5,1.28
+P01,B1,80,6,5.62,8.4,1.80

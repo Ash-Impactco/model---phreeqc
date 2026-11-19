@@ -1,0 +1,11 @@
+where,rate_t_ha,bicarbonate_eq_ha_yr_in_year_3,alkalinity_increase_meq_L,base_cation_increase_meq_L,catchment_ha
+plot lysimeter,0.0,0,0.0,0.0,
+plot lysimeter,20.0,362,0.0301,0.0895,
+plot lysimeter,40.0,897,0.0747,0.1734,
+plot lysimeter,80.0,2429,0.2024,0.3455,
+W1 water sampling,,9440,0.0014,,562.3
+W2 water sampling,,9440,0.00152,,517.3
+W3 water sampling,,9440,0.00375,,209.6
+W4 water sampling,,9440,0.00392,,200.5
+W5 water sampling,,9440,0.00839,,93.8
+W6 water sampling,,9440,0.01039,,75.7

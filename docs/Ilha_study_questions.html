@@ -1,0 +1,81 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Ilha study questions</title>
+<link rel="stylesheet" href="/Users/aswin/model---phreeqc/docs/../ilha_erw_model/report/doc.css">
+<style>
+.q { font-weight: 700; margin-top: 6pt; }
+.lines { height: 30mm; border-bottom: 0.4pt solid #999; background: repeating-linear-gradient(#fff 0 7.4mm, #bbb 7.4mm 7.6mm); margin-bottom: 4pt; }
+ol li { page-break-inside: avoid; }
+.pb { page-break-before: always; }
+</style></head><body>
+<div class="titleblock"><div class="doclabel">Ilha Carbon · Lomba da Maia basalt rate trial · Study questions</div>
+<h1>Questions to work through before the team meeting</h1>
+<div class="sub">19 November 2026. Part A: a 10-question self-quiz with space to write (answers in Part C). Part B: the 20 hardest questions the team is likely to ask, with short answers.</div></div>
+<div class="box thick"><p><b>Placeholder values: replace with screening and lab data.</b> Every number here comes from the model run on literature soil values and the Marques Britas basalt. None is a site result. Say "placeholder" whenever you quote one.</p></div>
+<h2>Part A. Self-quiz</h2>
+<p>Answer in your own words first, then check Part C.</p>
+<ol><li><p class='q'>The rock has a CO2 potential of about 320 kg per tonne. Why is that not what we expect from the trial?</p><div class='lines'></div></li>
+<li><p class='q'>What share of the rock&#x27;s cations dissolves by month 30 in the central case, and what is the honest range?</p><div class='lines'></div></li>
+<li><p class='q'>At soil pH 5.4, roughly what share of the released cations leaves as bicarbonate? And at pH 6.2?</p><div class='lines'></div></li>
+<li><p class='q'>If the December screening finds soil pH 5.0 instead of 5.4, does the trial&#x27;s carbon get better or worse? Why?</p><div class='lines'></div></li>
+<li><p class='q'>Which lab result tells us most about how much of the rock dissolves in 30 months?</p><div class='lines'></div></li>
+<li><p class='q'>What is the field factor, why does it matter, and where will we get it from?</p><div class='lines'></div></li>
+<li><p class='q'>Name three measurements that should show a rate effect within 30 months, and two that will not.</p><div class='lines'></div></li>
+<li><p class='q'>Why 16 plots rather than 12?</p><div class='lines'></div></li>
+<li><p class='q'>Why is &#x27;40 t/ha versus control&#x27; a weak test, and what do we use as the main result instead?</p><div class='lines'></div></li>
+<li><p class='q'>Are the trace metals a problem?</p><div class='lines'></div></li></ol>
+<h2 class="pb">Part B. The 20 hard questions, with short answers</h2>
+<h3>Juan (geochemist, MRV lead)</h3>
+<p class='q'><b>1. Why is net carbon negative in the grant period?</b></p>
+<p>Three reasons stack up. Only about 7% of the rock dissolves in 30 months. At pH 5.4 only about 10% of what dissolves leaves as bicarbonate; the rest neutralises soil and fertiliser acidity. And the deductions are paid up front: trucking and spreading 4.3 kg CO2e/t, rock carbonate 1.8, sulfur 0.5. Gross 1.1 t minus about 2.4 t gives -1.3 t. It is a calibration trial, not a removal project.</p>
+<p class='q'><b>2. Why can&#x27;t you measure dissolution directly in the soil?</b></p>
+<p>The rock is 5% of the top 10 cm at 40 t/ha, and only 7% of that has dissolved: a 0.35% change hidden in core-to-core noise of 20 to 25%. Even 30 cores at 80 t/ha only detect a dissolved fraction above about 0.17. And total Ca + Mg includes cations that dissolved but are still on exchange sites, so the mass balance would see only about half the dissolution. We keep it as a long-term measurement and measure weathering through lysimeters, exchangeable cations and mesocosms instead.</p>
+<p class='q'><b>3. Why not use Ti or Zr as the immobile tracer?</b></p>
+<p>Placeholder soil Ti (2.5% TiO2) is not far below the rock (3.9%), so the signal is smaller than the noise (signal-to-noise 0.25 to 0.93). Soil Zr (350 ppm) is higher than rock Zr (300 ppm), so it moves the wrong way. The screening must measure both; if real soil Ti is much lower, the tracer comes back into play.</p>
+<p class='q'><b>4. Is the bicarbonate share rule defensible?</b></p>
+<p>It is a simplification: it uses the share of dissolved CO2 present as bicarbonate at bulk soil pH. I cross-checked it against what drainage water in equilibrium with 1 to 3% soil CO2 could carry at that pH, and it lands in the same range. It makes carbon very pH-sensitive. We should replace it with lysimeter DIC and soil-air CO2 data, and check it against Isometric&#x27;s deduction for non-carbonic-acid weathering.</p>
+<p class='q'><b>5. Where do the kinetic constants come from?</b></p>
+<p>Palandri and Kharaka (2004) for olivine, augite and labradorite, which I checked against the published table. Basaltic glass is an approximation after Gislason and Oelkers (2003); please check it, because those glass rates may be normalised to geometric surface, in which case roughness is counted twice (a small effect: 6.7% becomes 6.2%).</p>
+<p class='q'><b>6. What dominates dissolution?</b></p>
+<p>The grains below 63 micrometres: 70% of what dissolves in 30 months, half from grains below 10 micrometres. Their size distribution inside the finest sieve class is assumed. If they were all 20 to 63 micrometres, gross removal at 30 months would drop by 42%. Laser diffraction and BET on the Tecnovia fines are the top lab priority.</p>
+<h3>Maria-Elena (ERW scientist)</h3>
+<p class='q'><b>7. Why 0 to 80 t/ha?</b></p>
+<p>To fit a dose response we need spread. At 20 t/ha the pH effect (+0.14 vs baseline) is already only about the size of the noise on a four-plot average, so lower rates add almost nothing to the slope. 80 t/ha gives the clearest signal (pH +0.64, lysimeter +0.20 meq/L, well above the 0.05 LOQ) and, with 40, tests whether the response flattens. Higher rates add tonnage, cost and metal load (Cr +20% at 80) for little extra information; the mesocosms go to 160 t/ha to extend the curve cheaply.</p>
+<p class='q'><b>8. Should we add 10 t/ha?</b></p>
+<p>The model says no for the field. At 10 t/ha the pH change at 30 months is +0.03, which no design will see, and a fifth rate costs plots: 5 rates x 3 blocks (15 plots) has lower power than 4 x 4 (16 plots). If a commercially realistic low rate matters for the story, put it in the mesocosms.</p>
+<p class='q'><b>9. What if the soil is more acidic than you assumed?</b></p>
+<p>At pH 5.0 the rock dissolves a bit faster (8.1% vs 6.7% at 40 t/ha), but only 4% of the cations leave as bicarbonate, so gross removal at 40 t/ha falls from 0.11 to 0.07 t/ha and the trial net goes from -1.3 to -1.7 t. The pH response is bigger (+0.58 vs control). At pH 5.9 it is the other way round: net -0.7 t. Starting pH is the second biggest driver, which is why the December screening matters.</p>
+<p class='q'><b>10. How do you get the field factor?</b></p>
+<p>From the mesocosms (rock in quartz sand gives the rock&#x27;s own rate; rock in soil gives the soil effect) and from the first field rounds of exchangeable Ca + Mg and lysimeter alkalinity, fitted back through the model. It is a placeholder (0.2 to 3) today.</p>
+<p class='q'><b>11. Is the Monte Carlo range realistic?</b></p>
+<p>It varies 9 inputs, but not rock chemistry, fines shape, roughness, glass kinetics or soil variability, so P10 to P90 is narrower than the truth. Treat it as &quot;at least this uncertain&quot;.</p>
+<p class='q'><b>12. Is the model too simple: one 10 cm layer?</b></p>
+<p>Yes, for anything beyond design. No transport between layers, no pore-water chemistry, no saturation effects or coatings. It is fit for sizing the trial, not for claiming removal. A reactive-transport model (PHREEQC or SCEPTER) is the next step once lysimeter data exist.</p>
+<h3>Chaitanya (carbon markets)</h3>
+<p class='q'><b>13. Can we say anything about carbon in the application?</b></p>
+<p>Yes: the rock&#x27;s long-run potential (320 kg CO2/t, placeholder), that the trial is designed to measure the weathering rate and the bicarbonate share under Azorean pasture, and that grant-period net removal is expected near zero or negative. No credit claims, no tonnage promises.</p>
+<p class='q'><b>14. When does it break even?</b></p>
+<p>Central case: after roughly 10 years at 40 t/ha (+0.02 t/ha) and earlier at 80 t/ha (+0.25 t/ha by year 10). 20 t/ha is still slightly negative at 10 years. All highly uncertain.</p>
+<p class='q'><b>15. Does the exchange-retained calcium count later?</b></p>
+<p>Not in the model. It is a store: it can leave as bicarbonate later if pH rises, or with nitrate if acidification continues. Counting only bicarbonate is the conservative reading. The registry treatment needs checking.</p>
+<p class='q'><b>16. Would avoided liming count?</b></p>
+<p>Not modelled. If the basalt lets Luis lime less, the CO2 that lime would have released is avoided. Whether a registry accepts that is a question for you; it would need Luis&#x27;s lime records anyway.</p>
+<h3>Luis (landowner)</h3>
+<p class='q'><b>17. Are the metals a problem?</b></p>
+<p>With placeholder soil values, the natural background already exceeds the Portuguese sludge-law screening limits for nickel, chromium, copper and zinc. That is common in volcanic soils and says nothing about the basalt. At 80 t/ha the rock adds about 10% Ni and 20% Cr on top. Which limits apply to rock dust on volcanic soil is open; Juan and the regional authority must settle it using the December screening. Pasture tissue metals are monitored every cut.</p>
+<p class='q'><b>18. What does it do to my grass and soil?</b></p>
+<p>Soil pH rises (about +0.4 vs control at 40 t/ha by month 30) and so does exchangeable calcium and magnesium: in effect a slow liming. Yield and tissue are measured each cut. We expect no harm, but we will measure, not assume.</p>
+<p class='q'><b>19. How much disturbance?</b></p>
+<p>About 18 truckloads, spreading on the 12 treated plots, catch trays at spreading, six rounds of soil cores, monthly lysimeter visits to 8 plots, pasture quadrats each cut. No ploughing.</p>
+<p class='q'><b>20. Who pays for what in the sampling?</b></p>
+<p>The model gives counts, not prices or a split: per round 16 composites and 96 individual cores, deeper composites three times, 480 lysimeter samples, 240 tissue samples, about 1,100 mesocosm leachate samples. The cost split between Ilha, the labs and partners is a budget decision for the application, not something the model answers. Lab quotes are still to come.</p>
+<h2 class="pb">Part C. Answers to the self-quiz</h2>
+<ol><li><p><b>The rock has a CO2 potential of about 320 kg per tonne. Why is that not what we expect from the trial?</b></p><p>It is a ceiling: what the rock could capture if every grain dissolved and every cation left as bicarbonate, which takes decades. 358 t x 320 kg is about 115 t. In 30 months only about 7% dissolves (about 8 t) and only about one eighth of that leaves as bicarbonate (about 1 t gross). Trucking, spreading, rock carbon and sulfur cost about 2.4 t, so the trial is about -1.3 t net.</p></li>
+<li><p><b>What share of the rock&#x27;s cations dissolves by month 30 in the central case, and what is the honest range?</b></p><p>About 7% (central). Range about 3% (pessimistic) to 13% (optimistic). 7% is the middle case, not the optimistic one.</p></li>
+<li><p><b>At soil pH 5.4, roughly what share of the released cations leaves as bicarbonate? And at pH 6.2?</b></p><p>About 10% at pH 5.4; about 41% at pH 6.2 (22% at 5.8). The rest neutralises soil acidity. That is why rising pH speeds up carbon removal later.</p></li>
+<li><p><b>If the December screening finds soil pH 5.0 instead of 5.4, does the trial&#x27;s carbon get better or worse? Why?</b></p><p>Worse. The rock dissolves a bit faster (8.1% vs 6.7% at 40 t/ha) but only about 4% leaves as bicarbonate, so the trial net goes from about -1.3 t to about -1.7 t. More acid means more dissolving but less carbon. The farm benefit (pH rise) is bigger.</p></li>
+<li><p><b>Which lab result tells us most about how much of the rock dissolves in 30 months?</b></p><p>The grain-size test (PSD) of the Tecnovia fines, including laser diffraction of the part finer than 63 micrometres. Those grains are about 12% of the mass but give about 70% of the early dissolution, like icing sugar versus a sugar cube.</p></li>
+<li><p><b>What is the field factor, why does it matter, and where will we get it from?</b></p><p>How fast rock weathers in a real field compared with a lab beaker. It is the single biggest uncertainty (rank correlation 0.83). We will estimate it from the mesocosms (soil columns in the lab) and from the first field rounds, fitted back through the model.</p></li>
+<li><p><b>Name three measurements that should show a rate effect within 30 months, and two that will not.</b></p><p>Will: soil pH, exchangeable Ca + Mg, total Ca + Mg (soil cores), lysimeter alkalinity under 40 and 80 t/ha, mesocosm leachate. Will not: the dissolved fraction from soil mass balance (detectable only above about 0.17 vs 0.07 expected), the Ti and Zr tracers, and the streams W1 to W6 (signal at most 0.01 meq/L).</p></li>
+<li><p><b>Why 16 plots rather than 12?</b></p><p>At medium variability 16 plots detect the dose response with power about 0.95, 12 plots about 0.8. Caveat: both figures assume the central field factor; if the rock weathers slower, power drops. Drop to 12 only if the screening shows low variability.</p></li>
+<li><p><b>Why is &#x27;40 t/ha versus control&#x27; a weak test, and what do we use as the main result instead?</b></p><p>Comparing single rates uses only 8 plots and needs a Holm correction for several comparisons: power about 0.35 even with 16 plots. The main result is the regression slope of the response on rate across all 16 plots, with blocks.</p></li>
+<li><p><b>Are the trace metals a problem?</b></p><p>Not from the basalt so far, but open. With placeholder soil values the natural background already exceeds the Portuguese sludge-law screening limits for Ni, Cr, Cu and Zn, which is common in volcanic soils. 80 t/ha adds about +10% Ni and +20% Cr. Which limits apply to rock dust on volcanic soil must be settled with Juan and the regional authority after the December screening.</p></li></ol>
+</body></html>

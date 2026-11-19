@@ -1,0 +1,16 @@
+quantity,value,unit
+Ca charge,3.567,eq/kg
+Mg charge,3.424,eq/kg
+Na charge,1.097,eq/kg
+K charge,0.425,eq/kg
+Total base-cation charge,8.512,eq/kg
+Ca + Mg charge only,6.991,eq/kg
+"CO2 potential, gross (1 mol CO2 per eq)",374.626,kg CO2/t
+Deduct: inorganic carbon in rock,1.832,kg CO2/t
+Deduct: sulfide acidity (2 eq per mol S),0.549,kg CO2/t
+"CO2 potential, net of rock C and S",372.245,kg CO2/t
+Net potential after downstream retention (0.86),320.131,kg CO2/t
+"Ca + Mg only, net, after retention",262.533,kg CO2/t
+Chemical Index of Alteration (CIA),35.052,fresh basalt ~35 to 45
+Mafic Index of Alteration (MIA),33.945,fresh basalt ~35 to 45; higher = weathered
+Oxide total,100.6,wt%

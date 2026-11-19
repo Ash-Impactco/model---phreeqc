@@ -1,0 +1,4 @@
+scenario,gross_t_CO2,net_t_CO2
+low,0.3,-2.1
+central,1.09,-1.31
+high,2.6,0.2

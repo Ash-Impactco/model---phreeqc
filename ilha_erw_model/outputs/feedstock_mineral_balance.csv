@@ -1,0 +1,7 @@
+mineral,formula,mode_wt_frac,eq_per_kg_mineral,eq_per_kg_rock,share_of_cations
+olivine,Fo80 (Mg1.6Fe0.4SiO4),0.1,20.915,2.092,0.246
+augite,Ca0.9Mg0.8Fe0.3Si2O6,0.25,14.783,3.696,0.434
+labradorite,An60 (Ca0.6Na0.4Al1.6Si2.4O8),0.4,5.882,2.353,0.276
+glass,Basaltic glass per mol Si; cations by difference,0.12,3.102,0.372,0.044
+oxides_inert,"Fe-Ti oxides, apatite etc. (not counted)",0.08,0.0,0.0,0.0
+other_inert,"Fe-Ti oxides, apatite etc. (not counted)",0.05,0.0,0.0,0.0
