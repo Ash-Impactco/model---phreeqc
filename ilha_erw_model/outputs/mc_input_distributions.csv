@@ -1,0 +1,10 @@
+parameter,distribution,parameters,meaning
+field_factor,lognormal,"(0.0, 0.8)","Lab-to-field rate scaling (median 1, 90% range ~0.27 to 3.7)"
+fines_scale,uniform,"(0.6, 1.6)",Mass in the two finest PSD bins relative to the placeholder
+pH0,uniform,"(5.0, 5.9)",Starting soil pH
+pHBC,uniform,"(3.0, 8.0)","Soil pH buffer capacity, cmolc/kg/pH"
+acid_load,uniform,"(0.5, 4.0)","Net background acid load, keq/ha/yr"
+T_C,uniform,"(13.5, 16.5)","Mean temperature, C"
+exch_ret,uniform,"(0.5, 0.9)",Share of non-bicarbonate cations held on exchange sites
+secondary,uniform,"(0.05, 0.25)",Cations lost to secondary minerals
+downstream,uniform,"(0.8, 0.92)",Downstream retention of exported alkalinity

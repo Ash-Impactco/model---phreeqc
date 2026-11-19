@@ -1,0 +1,3 @@
+group,core_id,pH_H2O,CaO_pct,MgO_pct,TiO2_pct,Zr_ppm
+EXAMPLE-S01,1,5.4,1.5,1.5,2.5,350
+EXAMPLE-S01,2,5.5,1.7,1.4,2.6,340

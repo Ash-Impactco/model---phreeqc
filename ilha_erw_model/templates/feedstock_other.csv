@@ -1,0 +1,4 @@
+parameter,value,unit,method
+moisture_wet_frac,0.08,fraction of wet mass,ISO 17892-1
+inorganic_C_pct,0.05,wt%,method to confirm with lab and Isometric
+total_S_pct,0.02,wt%,dry combustion

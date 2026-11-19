@@ -1,0 +1,30 @@
+Plots: 16, blocks: 4, rates: [np.int64(0), np.int64(20), np.int64(40), np.int64(80)], rounds: [np.int64(0), np.int64(6), np.int64(12), np.int64(18), np.int64(24), np.int64(30)]
+
+1. Dose-response regression at the final round:  y = b0 + b1*rate + block
+   d_pH       slope per t/ha +0.00691 (95% CI +0.00343 to +0.01038), p = 0.0011; effect at 40 t/ha +0.276; R2 0.83
+              curvature (quadratic term) p = 0.431; AIC linear -4.3, quadratic -3.3
+              saturating fit a(1-exp(-b*rate)): a = 0.693, b = 0.0226 (half effect at 31 t/ha)
+   d_CaMg     slope per t/ha +0.02226 (95% CI +0.00364 to +0.04088), p = 0.0233; effect at 40 t/ha +0.891; R2 0.53
+              curvature (quadratic term) p = 0.880; AIC linear 49.4, quadratic 51.4
+              saturating fit a(1-exp(-b*rate)): a = 3.214, b = 0.0155 (half effect at 45 t/ha)
+   d_totCaMg  slope per t/ha +0.00654 (95% CI +0.00433 to +0.00875), p = 0.0000; effect at 40 t/ha +0.261; R2 0.81
+              curvature (quadratic term) p = 0.554; AIC linear -18.8, quadratic -17.4
+              saturating fit a(1-exp(-b*rate)): a = 1824.100, b = 0.0000 (half effect at 217454 t/ha)
+
+2. MANOVA (joint check), Pillai's trace = 0.939, F = 46.32, p = 0.0000
+
+3. Each rate against the control (Holm-adjusted)
+   d_pH       80 t/ha vs 0: diff +0.621, Holm p = 0.0021
+   d_pH       20 t/ha vs 0: diff +0.361, Holm p = 0.0335
+   d_pH       40 t/ha vs 0: diff +0.328, Holm p = 0.0335
+   d_CaMg     80 t/ha vs 0: diff +1.541, Holm p = 0.1796
+   d_CaMg     40 t/ha vs 0: diff +1.178, Holm p = 0.2688
+   d_CaMg     20 t/ha vs 0: diff -0.178, Holm p = 0.8093
+   d_totCaMg  80 t/ha vs 0: diff +0.563, Holm p = 0.0001
+   d_totCaMg  20 t/ha vs 0: diff +0.224, Holm p = 0.0243
+   d_totCaMg  40 t/ha vs 0: diff +0.182, Holm p = 0.0314
+
+4. Repeated rounds: linear mixed model  y ~ rate * month + block, random intercept per plot
+   d_pH       rate x month +0.000166 per t/ha per month, p = 0.0447 (does the rate effect grow over time)
+   d_CaMg     rate x month +0.000202 per t/ha per month, p = 0.4527 (does the rate effect grow over time)
+   d_totCaMg  rate x month -0.000001 per t/ha per month, p = 0.9700 (does the rate effect grow over time)

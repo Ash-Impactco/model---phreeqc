@@ -1,0 +1,13 @@
+design,plots,noise,power_d_pH,power_d_CaMg,power_d_totCaMg,power_MANOVA,power_pH_40_vs_control_Holm
+A: 5 rates x 2 blocks,10,low,0.983,0.99,0.997,0.95,0.29
+A: 5 rates x 2 blocks,10,medium,0.657,0.693,0.793,0.58,0.103
+A: 5 rates x 2 blocks,10,high,0.303,0.35,0.407,0.24,0.043
+B: 4 rates x 3 blocks,12,low,0.997,0.997,1.0,1.0,0.593
+B: 4 rates x 3 blocks,12,medium,0.79,0.85,0.883,0.777,0.283
+B: 4 rates x 3 blocks,12,high,0.393,0.433,0.487,0.36,0.083
+C: 5 rates x 3 blocks,15,low,1.0,1.0,1.0,0.997,0.56
+C: 5 rates x 3 blocks,15,medium,0.87,0.903,0.923,0.897,0.21
+C: 5 rates x 3 blocks,15,high,0.483,0.493,0.573,0.497,0.08
+D: 4 rates x 4 blocks,16,low,1.0,1.0,1.0,1.0,0.81
+D: 4 rates x 4 blocks,16,medium,0.937,0.95,0.95,0.947,0.347
+D: 4 rates x 4 blocks,16,high,0.603,0.637,0.67,0.52,0.16

@@ -1,0 +1,7 @@
+mineral,wt_frac,note
+olivine,0.10,quantitative XRD (Rietveld); names must match: olivine augite labradorite glass oxides_inert other_inert
+augite,0.25,
+labradorite,0.40,
+glass,0.12,amorphous by difference
+oxides_inert,0.08,Fe-Ti oxides
+other_inert,0.05,apatite and anything not counted

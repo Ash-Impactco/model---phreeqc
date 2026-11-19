@@ -1,0 +1,10 @@
+parameter,meaning,spearman_rho
+field_factor,"Lab-to-field rate scaling (median 1, 90% range ~0.27 to 3.7)",0.832
+pH0,Starting soil pH,0.352
+fines_scale,Mass in the two finest PSD bins relative to the placeholder,0.311
+downstream,Downstream retention of exported alkalinity,0.159
+secondary,Cations lost to secondary minerals,-0.14
+T_C,"Mean temperature, C",0.08
+acid_load,"Net background acid load, keq/ha/yr",-0.061
+pHBC,"Soil pH buffer capacity, cmolc/kg/pH",-0.021
+exch_ret,Share of non-bicarbonate cations held on exchange sites,-0.0

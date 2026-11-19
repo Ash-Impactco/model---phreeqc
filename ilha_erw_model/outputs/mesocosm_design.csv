@@ -1,0 +1,6 @@
+rate_t_ha,rock_g_per_column,soil_kg_per_column,irrigation_L_per_week,alk_increase_meq_L_month3,alk_increase_meq_L_month12,base_cations_meq_L_month12,frac_cations_dissolved_12m,pH_0_10cm_at_12m
+0,0.0,3.98,0.408,0.0,0.0,0.0,0.0567,5.4
+20,35.3,3.98,0.408,0.0968,0.0547,0.1533,0.0532,5.58
+40,70.7,3.98,0.408,0.2064,0.1307,0.2982,0.0503,5.73
+80,141.4,3.98,0.408,0.4644,0.3416,0.5934,0.0461,5.98
+160,282.7,3.98,0.408,1.1343,0.9214,1.2334,0.0406,6.33

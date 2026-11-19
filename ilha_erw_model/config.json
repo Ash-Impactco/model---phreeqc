@@ -1,0 +1,113 @@
+{
+  "_readme": "Every parameter has a value, a status and a note. status = placeholder (replace with site or lab data), literature (published value, keep unless lab says otherwise), design (our choice), measured (from our own data). When a CSV in inputs/ exists, run_all.py uses it in place of the placeholder and marks it measured.",
+
+  "site": {
+    "site_dir": {"value": "site_data", "status": "design", "note": "QGIS layers exported from Lomba_da_Maia_Plots_v2 (EPSG:5015 for rasters, WGS84 for vectors)"},
+    "candidate_units": {"value": ["U3", "U4", "U5"], "status": "design", "note": "Contiguous pilot units rated Easy/Workable with slope p90 under 20%. Change here to test other areas"},
+    "max_plot_slope_pct": {"value": 20, "status": "design", "note": "Mean slope limit per plot, for safe spreading and even runoff"},
+    "max_cell_slope_pct": {"value": 30, "status": "design", "note": "Pixels steeper than this are excluded"},
+    "drainage_buffer_m": {"value": 10, "status": "design", "note": "No-spread buffer either side of drainage lines (4 ha+ catchment)"},
+    "plot_length_m": {"value": 80, "status": "design", "note": "Square plots pack best into the open ground of U3 to U5"},
+    "plot_width_m": {"value": 80, "status": "design", "note": "Five 16 m spreading bouts; plots are 0.64 ha gross"},
+    "alley_m": {"value": 8, "status": "design", "note": "Untreated strip between plots"},
+    "net_inset_m": {"value": 8, "status": "design", "note": "Sampling only inside the plot minus this inset, to avoid edge drift"},
+    "seed": {"value": 2026, "status": "design", "note": "Random seed for rate allocation; record it in the trial protocol"}
+  },
+
+  "design": {
+    "rates_t_ha": {"value": [0, 20, 40, 80], "status": "design", "note": "Dry-mass application rates"},
+    "blocks": {"value": 4, "status": "design", "note": "Blocks laid along the elevation gradient. 3 blocks = 12 plots (minimum); 4 = 16 plots (recommended if screening variability is medium or high)"},
+    "contingency_frac": {"value": 0.10, "status": "design", "note": "Extra feedstock ordered"},
+    "months": {"value": 30, "status": "design", "note": "Grant period"},
+    "sampling_months": {"value": [0, 6, 12, 18, 24, 30], "status": "design", "note": "Soil sampling rounds; 0 = baseline before spreading"},
+    "cores_per_composite": {"value": 15, "status": "design", "note": "As Juan's screening protocol v1.1"},
+    "individual_cores_per_plot": {"value": 6, "status": "design", "note": "Cores analysed separately each round for the tracer mass balance and its uncertainty"},
+    "depths_cm": {"value": ["0-10", "10-20", "20-30"], "status": "design", "note": "0-10 every round; 10-20 and 20-30 at 0, 12 and 30 months"},
+    "truck_payload_t_wet": {"value": 25, "status": "placeholder", "note": "Confirm with haulier"},
+    "catch_trays_per_plot": {"value": 5, "status": "design", "note": "Application-rate verification at spreading"}
+  },
+
+  "climate": {
+    "mean_temp_C": {"value": 15.0, "status": "placeholder", "note": "About 15 C at 350-450 m on the NE coast; replace with IPMA / CIIMAR or a farm logger"},
+    "rain_mm_yr": {"value": 1800, "status": "placeholder", "note": "NE Sao Miguel at trial elevation; replace with station data"},
+    "aet_mm_yr": {"value": 600, "status": "placeholder", "note": "Actual evapotranspiration of grazed pasture"}
+  },
+
+  "soil": {
+    "pH_H2O": {"value": 5.4, "status": "placeholder", "note": "Andosol under dairy pasture; from December screening"},
+    "bulk_density_g_cm3": {"value": 0.75, "status": "placeholder", "note": "Andosols are light (0.6 to 0.9); from screening cores"},
+    "mixing_depth_cm": {"value": 10, "status": "design", "note": "Surface application, no tillage: rock stays in the top 10 cm at first"},
+    "CEC_cmolc_kg": {"value": 25, "status": "placeholder", "note": "From screening"},
+    "base_saturation_frac": {"value": 0.30, "status": "placeholder", "note": "From screening"},
+    "pH_buffer_cmolc_kg_pH": {"value": 5.0, "status": "placeholder", "note": "Andic soils buffer strongly. Measure by titration on screening composites"},
+    "acid_load_keq_ha_yr": {"value": 1.5, "status": "placeholder", "note": "Net background acidity from N fertiliser and grazing after the farm's routine liming. Calculate from farm N and lime records (Luis's work package)"},
+    "exchange_retention_frac": {"value": 0.7, "status": "placeholder", "note": "Share of non-bicarbonate cations held on the exchange complex rather than leached with strong-acid anions"},
+    "secondary_loss_frac": {"value": 0.10, "status": "placeholder", "note": "Released cations lost to secondary minerals and clays"},
+    "plant_uptake_frac": {"value": 0.05, "status": "placeholder", "note": "Ca and Mg removed in grazed or cut grass"},
+    "pKa1_carbonic": {"value": 6.35, "status": "literature", "note": "H2CO3*/HCO3- at 25 C"},
+    "elements": {"value": {
+      "CaO_pct": 1.5, "MgO_pct": 1.5, "Na2O_pct": 1.0, "K2O_pct": 1.0, "TiO2_pct": 2.5, "Zr_ppm": 350,
+      "Ni_ppm": 60, "Cr_ppm": 80, "Co_ppm": 30, "Cu_ppm": 40, "Zn_ppm": 100, "Pb_ppm": 15, "As_ppm": 3, "Cd_ppm": 0.3, "Hg_ppm": 0.05, "V_ppm": 150
+    }, "status": "placeholder", "note": "Soil total element concentrations (fusion XRF / ICP). Azorean soils on trachytic pumice can be high in Zr; check before choosing the tracer"},
+    "heterogeneity_cv": {"value": {"CaO_pct": 0.25, "MgO_pct": 0.20, "TiO2_pct": 0.10, "Zr_ppm": 0.15, "pH": 0.04, "exch_CaMg": 0.25}, "status": "placeholder", "note": "Core-to-core coefficient of variation within a plot. From the 15 subsamples and duplicate in screening"},
+    "between_plot_sd": {"value": {"d_pH": 0.15, "d_CaMg": 0.6}, "status": "placeholder", "note": "SD of the 30-month change between plots treated alike (not explained by blocks)"},
+    "analytical_cv": {"value": 0.03, "status": "placeholder", "note": "Lab precision; from lab duplicates and reference materials"}
+  },
+
+  "feedstock": {
+    "oxides_pct": {"value": {"SiO2": 47.4, "Al2O3": 14.0, "Fe2O3": 13.0, "CaO": 10.0, "MgO": 6.9, "TiO2": 3.9, "Na2O": 3.4, "K2O": 2.0}, "status": "placeholder", "note": "Marques Britas bulk oxides used as a stand-in until Tecnovia fines are analysed (lab XRF)"},
+    "inorganic_C_pct": {"value": 0.05, "status": "placeholder", "note": "Carbonate C; subtracted from potential"},
+    "total_S_pct": {"value": 0.02, "status": "placeholder", "note": "Sulfide S can generate acidity (2 eq per mol S)"},
+    "trace_ppm": {"value": {"Zr": 300, "Ni": 120, "Cr": 250, "Co": 45, "Cu": 60, "Zn": 110, "Pb": 4, "As": 1, "Cd": 0.15, "Hg": 0.01, "V": 280}, "status": "placeholder", "note": "Typical Azorean alkali basalt; replace with ICP-MS"},
+    "moisture_wet_frac": {"value": 0.08, "status": "placeholder", "note": "Water content, ISO 17892-1, wet basis. Converts dry tonnes to delivered tonnes"},
+    "mineral_mode_wt_frac": {"value": {"olivine": 0.10, "augite": 0.25, "labradorite": 0.40, "glass": 0.12, "oxides_inert": 0.08, "other_inert": 0.05}, "status": "placeholder", "note": "Quantitative XRD with glass by difference. Glass composition is solved so the cations match the XRF"},
+    "psd_bins_mm": {"value": [[0.002, 0.063], [0.063, 0.125], [0.125, 0.25], [0.25, 0.5], [0.5, 1.0], [1.0, 2.0], [2.0, 4.0]], "status": "design", "note": "Sieve bins"},
+    "psd_mass_frac": {"value": [0.12, 0.09, 0.12, 0.15, 0.18, 0.18, 0.16], "status": "placeholder", "note": "Unmilled 0-4 mm quarry fines; replace with sieve plus laser diffraction"},
+    "roughness": {"value": 7, "status": "literature", "note": "Reactive / geometric surface ratio. BET will refine this"}
+  },
+
+  "kinetics": {
+    "_source": {"value": "Palandri and Kharaka (2004) USGS OFR 2004-1068 for crystalline phases; basaltic glass approximated from Gislason and Oelkers (2003)", "status": "literature", "note": "Rate = k_acid * aH^n + k_neutral, Arrhenius-corrected to site temperature"},
+    "minerals": {"value": {
+      "olivine":     {"logk_acid": -6.85, "n_acid": 0.470, "Ea_acid": 67.2, "logk_neut": -10.64, "Ea_neut": 79.0, "Vm_cm3_mol": 44.5, "M_g_mol": 153.0, "eq_per_mol": 3.2, "formula": "Fo80 (Mg1.6Fe0.4SiO4)"},
+      "augite":      {"logk_acid": -6.82, "n_acid": 0.700, "Ea_acid": 78.0, "logk_neut": -11.97, "Ea_neut": 78.0, "Vm_cm3_mol": 66.0, "M_g_mol": 230.0, "eq_per_mol": 3.4, "formula": "Ca0.9Mg0.8Fe0.3Si2O6"},
+      "labradorite": {"logk_acid": -7.87, "n_acid": 0.626, "Ea_acid": 42.1, "logk_neut": -10.91, "Ea_neut": 45.2, "Vm_cm3_mol": 100.5, "M_g_mol": 272.0, "eq_per_mol": 1.6, "formula": "An60 (Ca0.6Na0.4Al1.6Si2.4O8)"},
+      "glass":       {"logk_acid": -7.50, "n_acid": 0.350, "Ea_acid": 25.5, "logk_neut": -10.50, "Ea_neut": 25.5, "Vm_cm3_mol": 42.5, "M_g_mol": 117.0, "eq_per_mol": null, "formula": "Basaltic glass per mol Si; cations by difference"}
+    }, "status": "literature", "note": "Glass values are an approximation: flag for Juan"},
+    "field_factor": {"value": {"low": 0.2, "central": 1.0, "high": 3.0}, "status": "placeholder", "note": "Lab-to-field scaling (wetting, contact, armouring). Calibrate with mesocosms and the first field rounds"},
+    "downstream_retention": {"value": 0.86, "status": "literature", "note": "Share of exported bicarbonate alkalinity that stays as stored carbon after river and ocean re-equilibration; Isometric uses a site-specific deduction, confirm the value used"},
+    "projection_years": {"value": 10, "status": "design", "note": "Longer horizon for context only"}
+  },
+
+  "emissions": {
+    "haul_km": {"value": 26, "status": "placeholder", "note": "Rabo de Peixe quarry to Lomba da Maia, one way"},
+    "truck_kgCO2e_per_tkm": {"value": 0.12, "status": "placeholder", "note": "Loaded haul including empty return"},
+    "loading_kgCO2e_per_t": {"value": 0.4, "status": "placeholder", "note": "Loader at quarry"},
+    "spreading_kgCO2e_per_t": {"value": 0.8, "status": "placeholder", "note": "Tractor and spreader"},
+    "quarry_allocation_kgCO2e_per_t": {"value": 0.0, "status": "placeholder", "note": "Zero only if fines are a by-product not produced for sale; depends on Tecnovia's fate-of-fines answer and Isometric allocation rules"}
+  },
+
+  "limits": {
+    "soil_limits_mg_kg": {"value": {
+      "pH<=5.5":   {"Cd": 0.5, "Cu": 20,  "Ni": 15, "Pb": 50,  "Zn": 60,  "Hg": 0.1, "Cr": 30},
+      "5.5<pH<=7": {"Cd": 1.0, "Cu": 50,  "Ni": 50, "Pb": 70,  "Zn": 150, "Hg": 1.0, "Cr": 60},
+      "pH>7":      {"Cd": 1.5, "Cu": 100, "Ni": 70, "Pb": 100, "Zn": 200, "Hg": 1.5, "Cr": 100}
+    }, "status": "placeholder", "note": "Portuguese soil limit values for sludge application (Decreto-Lei 276/2009, Annex I) used as a screening reference only. Confirm with Juan and the regional authority which thresholds apply to rock dust; volcanic soils can exceed Ni and Cr naturally"}
+  },
+
+  "mesocosm": {
+    "column_diameter_cm": {"value": 15, "status": "design", "note": ""},
+    "soil_height_cm": {"value": 30, "status": "design", "note": "Repacked by horizon (0-10, 10-20, 20-30) from the trial area"},
+    "rates_t_ha": {"value": [0, 20, 40, 80, 160], "status": "design", "note": "160 t/ha extends the curve beyond the field"},
+    "replicates": {"value": 4, "status": "design", "note": ""},
+    "sand_controls": {"value": 2, "status": "design", "note": "Basalt in acid-washed quartz sand at 40 t/ha: rock-only dissolution rate"},
+    "months": {"value": 12, "status": "design", "note": ""},
+    "irrigation_mm_yr": {"value": 1200, "status": "design", "note": "Site drainage (rain minus AET), applied weekly as artificial rain"},
+    "alkalinity_loq_meq_L": {"value": 0.05, "status": "placeholder", "note": "Gran titration LOQ; confirm with lab"}
+  },
+
+  "uncertainty": {
+    "n_monte_carlo": {"value": 600, "status": "design", "note": ""},
+    "n_power_sims": {"value": 300, "status": "design", "note": ""}
+  }
+}

@@ -1,0 +1,4 @@
+sample_id,analyte,value,unit,method,lab,note
+EXAMPLE-COMP1,SiO2,47.4,wt%,fusion WD-XRF,lab name,example row: delete before use
+EXAMPLE-COMP1,CaO,10.0,wt%,fusion WD-XRF,lab name,one row per analyte per sample; oxides in wt%: SiO2 Al2O3 Fe2O3 CaO MgO TiO2 Na2O K2O
+EXAMPLE-COMP1,Ni,120,ppm,fusion ICP-MS,lab name,trace in ppm: Zr Ni Cr Co Cu Zn Pb As Cd Hg V
