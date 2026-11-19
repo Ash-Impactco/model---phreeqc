@@ -1,0 +1,9 @@
+sample_id,phase,wt_pct,status,method,notes
+MB-BRITA2,Plagioclase (An36),43.8,assumed,normative calculation from oxides,model input until XRD
+MB-BRITA2,Clinopyroxene (diopside),24.2,assumed,normative,
+MB-BRITA2,K-feldspar,11.3,assumed,normative,
+MB-BRITA2,Olivine - forsterite,3.7,assumed,normative,
+MB-BRITA2,Olivine - fayalite,6.4,assumed,normative,Fe2+/Fe total assumed 0.8
+MB-BRITA2,"Fe-Ti oxides (ilmenite, magnetite)",10.6,assumed,normative,treated as inert
+MB-BRITA2,Basaltic glass (amorphous),,unknown,,key unknown; model tests 0-20%
+TV-FINES-01,(all phases),,TO MEASURE,XRD with Rietveld incl. amorphous fraction,

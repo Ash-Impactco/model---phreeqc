@@ -1,0 +1,16 @@
+sample_id,property,value,unit,status,source
+MB-BLOCK-OL,Density (volumetric weight),2850-3000,kg/m3,measured,Marques Britas technical data
+MB-BLOCK-OL,Water absorption,1.0,%,measured,Marques Britas
+MB-BLOCK-OL,Apparent porosity,5.0,%,measured,Marques Britas
+MB-BLOCK-OL,Compressive strength,241,MPa,measured,Marques Britas
+MB-BLOCK-OL,Compressive strength after freezing,249,MPa,measured,Marques Britas
+MB-BLOCK-OL,Bending strength,14.4,MPa,measured,Marques Britas
+MB-POLISHED,Density,2350-2500,kg/m3,measured,Marques Britas
+MB-POLISHED,Water absorption,5.31,%,measured,Marques Britas
+MB-POLISHED,Apparent porosity,20.34,%,measured,Marques Britas
+MB-BRITA2,Grading,0/4,mm,measured,DOP Po de Pedra 0/4
+MB-BRITA2,Passing 0.063 mm,~11,%,measured,DOP
+MB-BRITA2,Chloride,<0.01,%,measured,DOP
+MB-BRITA2,Alkali-silica reactivity,non-reactive,,measured,DOP
+TV-FINES-01,Moisture content,,%,TO MEASURE,
+TV-FINES-01,Bulk (loose) density,,t/m3,TO MEASURE,needed for truck loads

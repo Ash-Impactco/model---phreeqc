@@ -1,0 +1,9 @@
+reference,used_for,link
+Palandri & Kharaka (2004) USGS Open-File Report 2004-1068,mineral rate constants,https://pubs.usgs.gov/of/2004/1068/
+"Gislason & Oelkers (2003) GCA 67, 3817-3832",basaltic glass dissolution,
+"Renforth (2012) Int. J. Greenhouse Gas Control 10, 229-243",CO2 potential from oxides,
+"Parkhurst & Appelo (2013) PHREEQC v3, USGS T&M 6-A43",geochemical code,https://www.usgs.gov/software/phreeqc-version-3
+Beerling et al. (2024) PNAS,field ERW rates (reference point),
+"Kanzaki et al. (2022) GMD, SCEPTER",phase 2 reactive transport,
+"Isometric, Enhanced Weathering in Agriculture v1.3",field protocol,https://registry.isometric.com/protocol/enhanced-weathering-agriculture/1.3
+"Isometric, Rock and Mineral Feedstock Characterization v1.2",rock testing,https://registry.isometric.com/module/rock-and-mineral-feedstock-characterization/1.2

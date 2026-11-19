@@ -1,0 +1,7 @@
+mineral,formula_in_model,logk_acid_25C,Ea_acid_kJ_mol,n_acid,logk_neutral_25C,Ea_neutral_kJ_mol,source
+Plagioclase (labradorite rates),Na0.636Ca0.364Al1.364Si2.636O8,-7.87,42.1,0.626,-10.91,45.2,Palandri & Kharaka 2004
+K-feldspar,KAlSi3O8,-10.06,51.7,0.5,-12.41,38.0,Palandri & Kharaka 2004
+Diopside,CaMgSi2O6,-6.36,96.1,0.71,-11.11,40.6,Palandri & Kharaka 2004
+Forsterite,Mg2SiO4,-6.85,67.2,0.47,-10.64,79.0,Palandri & Kharaka 2004
+Fayalite,Fe2SiO4,-4.8,94.4,1.0,-12.8,94.4,Palandri & Kharaka 2004
+Basaltic glass,Si1Al0.349Fe0.165Ca0.227Mg0.2175Na0.1378K0.0538O3.229,,,,-9.5,25.5,"approximate, after Gislason & Oelkers 2003"

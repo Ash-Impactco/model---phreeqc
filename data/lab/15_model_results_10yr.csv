@@ -1,0 +1,9 @@
+scenario,years,rock_dissolved_10yr_pct,released_tCO2e_ha,co2_removed_t_ha,on_exchange_tCO2e_ha,topsoil_pH_change,iso_exported_from_NFZ_20cm_t_ha,iso_net_sorption_t_ha,iso_stored_t_ha,iso_emissions_t_ha,iso_net_removal_t_ha,status
+"S1 Base: soil A, 0/4 mm",10,0.67,0.096,0.0027,0.0952,0.008,0.0081,0.0896,0.0069,0.1704,-0.1635,"model forecast (stand-in data, placeholder emission factors)"
+"S2 Soil B, 0/4 mm",10,0.88,0.1261,0.0037,0.1262,0.032,0.0111,0.1186,0.0094,0.1704,-0.161,"model forecast (stand-in data, placeholder emission factors)"
+S3 Milled p80 1 mm,10,1.37,0.1965,0.0055,0.1947,0.016,0.0166,0.1832,0.0141,0.2604,-0.2463,"model forecast (stand-in data, placeholder emission factors)"
+S4 Milled p80 100 um,10,2.72,0.3901,0.011,0.3864,0.031,0.033,0.3635,0.0281,0.7104,-0.6823,"model forecast (stand-in data, placeholder emission factors)"
+S5 Base + 20% glass,10,1.43,0.2054,0.0115,0.2045,0.019,0.0265,0.1902,0.0226,0.1704,-0.1478,"model forecast (stand-in data, placeholder emission factors)"
+S6 Small acidity pool,10,0.74,0.106,0.007,0.1015,0.025,0.021,0.0871,0.0178,0.1704,-0.1526,"model forecast (stand-in data, placeholder emission factors)"
+"S7 Optimistic: small pool, 100 um, 20% glass, field factor 0.3",10,14.56,2.0917,0.2639,1.8322,0.535,0.9125,1.173,0.7756,0.7104,0.0652,"model forecast (stand-in data, placeholder emission factors)"
+S8 Upper bound: as S7 at lab rates,10,30.04,4.3135,1.7919,2.5757,0.716,3.0943,1.3156,2.6301,0.7104,1.9197,"model forecast (stand-in data, placeholder emission factors)"

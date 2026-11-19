@@ -1,0 +1,14 @@
+isometric_term,equation,what it means,how the model gets it,what must be measured for credits,status
+"CO2e Removal,RP",Eq. 1,Net removal for a reporting period,stored minus emissions (counterfactual already subtracted),all terms below,forecast
+"CO2e Stored,RP",Eq. 2 / Eq. 4,CO2 stored as inorganic carbon after losses,bracket of Eq. 4 x eta River/Ocean,soil-based (List 1) or porewater-based quantification,forecast
+"CO2e Counterfactual,RP",Eq. 1,What happens without rock (control plots),every term is rock minus no-rock control,control area >= Eq. 9 minimum (about 2.5%),modelled
+"CO2e Weathering,RP",Eq. 4,Base cations released from the feedstock,PHREEQC kinetic dissolution,"soil mass balance with immobile tracers (Ti, Zr) or porewater",modelled
+"CO2e BiomassLoss,RP",Eq. 4,Cations removed in harvested grass,not modelled (0),"Ca, Mg, K in harvested/grazed biomass",to measure
+"CO2e NetNewCarbonate,RP",Eq. 4,Calcite formed in the soil (halves removal),PHREEQC calcite in 0-20 cm,soil inorganic carbon (TIC) change,modelled
+"CO2e NetNewSilicate,RP",Eq. 4,Cations locked in new clays,not resolved (0),clay mineralogy / mass balance,to assess
+"CO2e NetSorption,RP",Eq. 4,Cations held on exchange sites (temporary loss),PHREEQC exchangeable bases in 0-20 cm,"exchangeable Ca, Mg, K, Na and CEC each sampling",modelled
+"CO2e NonCarbonicNeut,RP",Eq. 4,Alkalinity used to neutralise non-carbonic acids,charge-balance residual,"N fertiliser inputs, soil acidity",modelled (residual)
+eta RiverOcean,Eq. 4,Share of exported CO2 that stays stored in rivers and ocean,PLACEHOLDER 0.85,value required by Isometric for the catchment,assumed
+"CO2e Emissions,RP",Eq. 1,"Quarrying, milling, transport, spreading, sampling",placeholder factors (file 18),"fuel and electricity records, weighbridge tickets",assumed
+Near-Field Zone depth,Sec. 8.3,Removal counted when cations leave this depth,20 cm (mix depth),deeper of 20 cm or tillage depth + 5-10 cm,per protocol
+Issuance percentile,Sec. 8.4 / 10.1.4,Credits issued at P30 (P40 with validation),not yet (needs Monte Carlo / bootstrap),Unit-level bootstrap of measured CDR,to implement

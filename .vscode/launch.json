@@ -1,0 +1,9 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {"name": "Run live app (Streamlit)", "type": "debugpy", "request": "launch", "module": "streamlit",
+     "args": ["run", "app.py"], "cwd": "${workspaceFolder}"},
+    {"name": "Run all scenarios (batch)", "type": "debugpy", "request": "launch",
+     "program": "${workspaceFolder}/scripts/run_batch.py", "cwd": "${workspaceFolder}"}
+  ]
+}

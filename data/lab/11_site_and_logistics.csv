@@ -1,0 +1,17 @@
+item,value,unit,status,source / notes
+Trial area,100,ha,plan,"Luis Cordovil land, Lomba da Maia"
+Untreated control,2.5,% of area,Isometric EWA v1.3,
+Application rate,40,t/ha,plan,single application
+Total rock,4000,t,calculated,
+Spreading window,Sept to early Oct 2027,,plan,allow 4-6 weeks for rain
+Quarry location,"37.7909, -25.5916","lat, lon",approximate,"TECHNOVIA, Rabo de Peixe"
+Field location,"37.8296, -25.3534","lat, lon",approximate,Lomba da Maia
+Road distance,25.8,km,calculated (OSRM),about 27 min each way
+Truck payload,20,t,assumed,confirm with TECHNOVIA
+Truck loads,200,loads,calculated,
+Trucks,3,,plan,"about 300 t/day, about 14 working days"
+Spreaders,2,,plan,about 200 t/day each
+People,8,,estimate,"drivers, loaders, spreaders, records"
+Weighbridge ticket per load,required,,Isometric mass balance,
+Screening sampling,"10 composites + 1 duplicate, 15 subsamples each, 0-20 cm",,Juan's protocol v1.1,window 23-27 Nov 2026
+Baseline sampling (Isometric),about 1 composite per ha,,Isometric EWA v1.3,"before spreading, then annually"

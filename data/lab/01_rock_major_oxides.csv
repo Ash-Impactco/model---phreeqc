@@ -1,0 +1,6 @@
+sample_id,source,material,status,method,SiO2,Al2O3,Fe2O3,FeO,CaO,MgO,Na2O,K2O,TiO2,MnOx,P2O5,CO2,LOI,SO3,lab,date,notes
+MB-BRITA2,Marques Britas,"Brita 2, 0/4 mm stone powder (feedstock)","measured, stand-in",not stated (supplier data),47.44,14.05,13.02,,10.05,6.92,3.37,2.0,3.87,"0.09 (reported as Mn2O4, likely Mn3O4)",,0.05,<0.05,,supplier,,Main stand-in feedstock used in the model
+MB-BLOCK-OL,Marques Britas,"Basalt with olivine, sawed block","measured, reference",not stated (supplier data),47.16,15.37,12.45,,9.45,8.38,3.23,2.02,3.35,0.17 (Mn3O4),,0.14,<0.05,,supplier,,
+MB-POLISHED,Marques Britas,Polished vesicular basalt,"measured, reference",not stated (supplier data),50.33,17.5,6.33,,5.34,2.7,4.85,5.06,1.12,,,,<0.00,0.0,supplier,,Low Ca+Mg; poor ERW feedstock
+TV-FINES-01,TECHNOVIA,"0/4 mm fines, Rabo de Peixe",TO MEASURE,XRF or fusion ICP-OES,,,,,,,,,,,,,,,,,Fill when results arrive
+TV-FINES-02,TECHNOVIA,replicate,TO MEASURE,XRF or fusion ICP-OES,,,,,,,,,,,,,,,,,

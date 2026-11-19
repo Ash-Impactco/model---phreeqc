@@ -1,0 +1,7 @@
+sample_id,size_um,cumulative_pct_passing,status,method,notes
+MB-BRITA2,63,11,measured,sieve (DOP),
+MB-BRITA2,4000,100,measured,sieve (DOP),upper size of 0/4 grading
+MB-BRITA2,250,25,assumed,model bin,assumed split used in model
+MB-BRITA2,1000,50,assumed,model bin,
+MB-BRITA2,2000,75,assumed,model bin,
+TV-FINES-01,,,TO MEASURE,laser diffraction (fine end) + sieve,"report d10, d50, d80, d90"

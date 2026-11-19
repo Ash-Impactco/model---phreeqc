@@ -1,0 +1,5 @@
+sample_id,CaO,MgO,Na2O,K2O,tCO2_per_t_conservative_CaMg_only,tCO2_per_t_bicarbonate_full,tCO2_per_ha_at_40t_full,status,method
+MB-BRITA2,10.05,6.92,3.37,2.0,0.154,0.375,15.0,calculated,Renforth (2012) cation stoichiometry
+MB-BLOCK-OL,9.45,8.38,3.23,2.02,0.166,0.396,15.8,calculated,
+MB-POLISHED,5.34,2.7,4.85,5.06,0.071,0.259,10.4,calculated,
+TV-FINES-01,,,,,,,,TO CALCULATE,after oxides arrive
